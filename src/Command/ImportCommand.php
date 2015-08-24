@@ -33,6 +33,36 @@ use Psr\Http\Message\ResponseInterface;
 class ImportCommand extends Command
 {
     /**
+     * @var Finder
+     */
+    private $finder;
+
+    /**
+     * @var Client
+     */
+    private $client;
+
+    /**
+     * @var FrontMatter
+     */
+    private $frontMatter;
+
+    /**
+     * @var Parser
+     */
+    private $parser;
+
+    /**
+     * @var VarCloner
+     */
+    private $cloner;
+
+    /**
+     * @var Dumper
+     */
+    private $dumper;
+
+    /**
      * @param Finder      $finder      symfony/finder instance
      * @param Client      $client      guzzle http client
      * @param FrontMatter $frontMatter frontmatter parser
@@ -95,7 +125,7 @@ class ImportCommand extends Command
 
         $finder = $this->finder->files();
 
-        foreach ($input->getArgument('file') as $file) {
+        foreach ($files as $file) {
             if (is_file($file)) {
                 $finder = $finder->in(dirname($file))->name(basename($file));
             } else {
@@ -103,6 +133,7 @@ class ImportCommand extends Command
             }
         }
 
+        $promises = [];
         foreach ($finder as $file) {
             $doc = $this->frontMatter->parse($file->getContents());
 
@@ -127,7 +158,7 @@ class ImportCommand extends Command
      * @param OutputInterface $output    output of the command
      * @param Document        $doc       document to load
      *
-     * @return Promise/Promise
+     * @return Promise\Promise
      */
     protected function importResource($targetUrl, $file, OutputInterface $output, Document $doc)
     {
