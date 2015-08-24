@@ -133,6 +133,20 @@ class ImportCommand extends Command
             }
         }
 
+        $this->importPaths($finder, $output, $host);
+    }
+
+    /**
+     * @param Finder          $finder finder primmed with files to import
+     * @param OutputInterface $output output interfac
+     * @param string          $host   host to import into
+     *
+     * @return void
+     *
+     * @throws MissingTargetException
+     */
+    protected function importPaths(Finder $finder, OutputInterface $output, $host)
+    {
         $promises = [];
         foreach ($finder as $file) {
             $doc = $this->frontMatter->parse($file->getContents());
