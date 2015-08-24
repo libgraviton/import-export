@@ -104,7 +104,6 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
 
         $this->assertContains('Loading ' . $host . $path . ' from ' . $file, $cmdTester->getDisplay());
 
-        var_dump($cmdTester->getDisplay());
         if ($isError) {
             $this->assertContains(
                 'Failed to write <' . $host . $path . '> from \'' . $file . '\' with message \'Client error: 400\'',

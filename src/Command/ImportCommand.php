@@ -22,6 +22,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Exception\RequestException;
 use Webuni\FrontMatter\FrontMatter;
+use Webuni\FrontMatter\Document;
 use Psr\Http\Message\ResponseInterface;
 
 /**
@@ -111,55 +112,68 @@ class ImportCommand extends Command
 
             $targetUrl = sprintf('%s%s', $host, $doc->getData()['target']);
 
-            $output->writeln("<info>Loading ${targetUrl} from ${file}</info>");
-            $promise = $this->client->requestAsync(
-                'PUT',
-                $targetUrl,
-                [
-                    'json' => $this->parser->parse($doc->getContent(), false, false, true)
-                ]
-            );
-            $promise->then(
-                function (ResponseInterface $response) use ($output) {
-                    $output->writeln(
-                        '<comment>Wrote ' . $response->getHeader('Link')[0] . '</comment>'
-                    );
-                },
-                function (RequestException $e) use ($output, $file) {
-                    $output->writeln(
-                        '<error>' . str_pad(
-                            sprintf(
-                                'Failed to write <%s> from \'%s\' with message \'%s\'',
-                                $e->getRequest()->getUri(),
-                                $file,
-                                $e->getMessage()
-                            ),
-                            140,
-                            ' '
-                        ) . '</error>'
-                    );
-                    if ($output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-                        $this->dumper->dump(
-                            $this->cloner->cloneVar(
-                                $this->parser->parse($e->getResponse()->getBody(), false, false, true)
-                            ),
-                            function ($line, $depth) use ($output) {
-                                if ($depth > 0) {
-                                    $output->writeln(
-                                        '<error>' . str_pad(str_repeat('  ', $depth) . $line, 140, ' ') . '</error>'
-                                    );
-                                }
-                            }
-                        );
-                    }
-                }
-            );
-            $promises[] = $promise;
+            $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc);
         }
         try {
             Promise\unwrap($promises);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             // silently ignored since we already output an error when the promise fails
         }
+    }
+
+    /**
+     * @param string          $targetUrl target url to import resource into
+     * @param string          $file      path to file being loaded
+     * @param OutputInterface $output    output of the command
+     * @param 
+     *
+     * @return Promise/Promise
+     */
+    protected function importResource($targetUrl, $file, OutputInterface $output, Document $doc)
+    {
+        $output->writeln("<info>Loading ${targetUrl} from ${file}</info>");
+        $promise = $this->client->requestAsync(
+            'PUT',
+            $targetUrl,
+            [
+                'json' => $this->parser->parse($doc->getContent(), false, false, true)
+            ]
+        );
+        $promise->then(
+            function (ResponseInterface $response) use ($output) {
+                $output->writeln(
+                    '<comment>Wrote ' . $response->getHeader('Link')[0] . '</comment>'
+                );
+            },
+            function (RequestException $e) use ($output, $file) {
+                $output->writeln(
+                    '<error>' . str_pad(
+                        sprintf(
+                            'Failed to write <%s> from \'%s\' with message \'%s\'',
+                            $e->getRequest()->getUri(),
+                            $file,
+                            $e->getMessage()
+                        ),
+                        140,
+                        ' '
+                    ) . '</error>'
+                );
+                if ($output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+                    $this->dumper->dump(
+                        $this->cloner->cloneVar(
+                            $this->parser->parse($e->getResponse()->getBody(), false, false, true)
+                        ),
+                        function ($line, $depth) use ($output) {
+                            if ($depth > 0) {
+                                $output->writeln(
+                                    '<error>' . str_pad(str_repeat('  ', $depth) . $line, 140, ' ') . '</error>'
+                                );
+                            }
+                        }
+                    );
+                }
+            }
+        );
+        return $promise;
     }
 }
