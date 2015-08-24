@@ -1,0 +1,4 @@
+---
+target: /core/app/test
+---
+{ "id": "test", "showInMenu": true, "order": 100, "name": {"en": "Test"} }
