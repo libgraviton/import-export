@@ -92,12 +92,11 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
      *
      * @param string $host   import target host with protocol
      * @param string $file   file to import
-     * @param string $path   resulting path from file
      * @param array  $errors errors to check for (check valid case if none given)
      *
      * @return void
      */
-    public function testErrorFile($host, $file, $path, $errors = [])
+    public function testErrorFile($host, $file, $errors = [])
     {
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
@@ -111,7 +110,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
 
         $responseMock
             ->method('getBody')
-            ->willReturn(json_encode((object) [ "message" => "invalid" ]));
+            ->willReturn(json_encode((object) ["message" => "invalid"]));
 
         $requestMock = $this->getMock('Psr\Http\Message\RequestInterface');
         $requestMock
@@ -169,7 +168,6 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             'invalid file (server side)' => [
                 'http://localhost',
                 __DIR__ . '/fixtures/set-01/test.json',
-                '/core/app/test',
                 [
                     'Failed to write <http://localhost/core/app/test> from \'' .
                     __DIR__ . '/fixtures/set-01/test.json\' with message \'Client error: 400\'',
@@ -179,7 +177,6 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             'missing target in file (user error)' => [
                 'http://localhost',
                 __DIR__ . '/fixtures/set-01/test-3.json',
-                '/core/app/test',
                 [
                     'Missing target in \'' . __DIR__ . '/fixtures/set-01/test-3.json\'',
                 ],
