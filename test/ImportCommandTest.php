@@ -8,6 +8,7 @@ namespace Graviton\ImportExport\Tests;
 use Graviton\ImportExport\Command\ImportCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
@@ -109,15 +110,13 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
         $responseMock = $this->getMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
-            ->method('getHeader')
-            ->with('Link')
-            ->willReturn(['<' . $host . $path . '>; rel="self"']);
+            ->method('getBody')
+            ->willReturn(json_encode((object) [ "message" => "invalid" ]));
 
         $requestMock = $this->getMock('Psr\Http\Message\RequestInterface');
         $requestMock
             ->method('getUri')
             ->willReturn($host . '/core/app/test');
-        
 
         $exceptionMock = $this->getMockBuilder('GuzzleHttp\Exception\RequestException')
             ->setConstructorArgs(['Client error: 400', $requestMock, $responseMock])
@@ -126,6 +125,10 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
         $exceptionMock
             ->method('getRequest')
             ->willReturn($requestMock);
+
+        $exceptionMock
+            ->method('getResponse')
+            ->willReturn($responseMock);
 
         $promiseMock
             ->method('then')
@@ -170,7 +173,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 [
                     'Failed to write <http://localhost/core/app/test> from \'' .
                     __DIR__ . '/fixtures/set-01/test.json\' with message \'Client error: 400\'',
-                ]
+                    '"message": "invalid"',
+                ],
             ],
             'missing target in file (user error)' => [
                 'http://localhost',
@@ -178,7 +182,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 '/core/app/test',
                 [
                     'Missing target in \'' . __DIR__ . '/fixtures/set-01/test-3.json\'',
-                ]
+                ],
             ]
         ];
     }
@@ -206,7 +210,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 'decorated' => true,
-                'verbose' => true,
+                'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
             ]
         );
         return $cmdTester;
