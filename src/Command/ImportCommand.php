@@ -133,7 +133,11 @@ class ImportCommand extends Command
             }
         }
 
-        $this->importPaths($finder, $output, $host);
+        try {
+            $this->importPaths($finder, $output, $host);
+        } catch (MissingTargetException $e) {
+            $output->writeln('<error>' . $e->getMessage() . '</error>');
+        }
     }
 
     /**
@@ -151,14 +155,17 @@ class ImportCommand extends Command
         foreach ($finder as $file) {
             $doc = $this->frontMatter->parse($file->getContents());
 
-            if (!$doc->getData()['target']) {
-                throw new MissingTargetException($file);
+            $output->writeln("<info>Loading data from ${file}</info>");
+
+            if (!array_key_exists('target', $doc->getData())) {
+                throw new MissingTargetException('Missing target in \'' . $file . '\'');
             }
 
             $targetUrl = sprintf('%s%s', $host, $doc->getData()['target']);
 
             $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc);
         }
+
         try {
             Promise\unwrap($promises);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
@@ -176,7 +183,6 @@ class ImportCommand extends Command
      */
     protected function importResource($targetUrl, $file, OutputInterface $output, Document $doc)
     {
-        $output->writeln("<info>Loading ${targetUrl} from ${file}</info>");
         $promise = $this->client->requestAsync(
             'PUT',
             $targetUrl,

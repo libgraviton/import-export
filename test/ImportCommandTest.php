@@ -24,15 +24,17 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider uploadFileProvider
      *
-     * @param string  $host    import target host with protocol
-     * @param string  $file    file to import
-     * @param string  $path    resulting path from file
-     * @param boolean $isError are we testing an error condition
+     * @param string $host   import target host with protocol
+     * @param string $file   file to import
+     * @param string $path   resulting path from file
+     * @param array  $errors errors to check for (check valid case if none given)
      *
      * @return void
      */
-    public function testUploadFile($host, $file, $path, $isError = false)
+    public function testUploadFile($host, $file, $path, $errors = [])
     {
+        $isError = !empty($errors);
+
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
         $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
@@ -102,13 +104,15 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ]
         );
 
-        $this->assertContains('Loading ' . $host . $path . ' from ' . $file, $cmdTester->getDisplay());
+        $this->assertContains('Loading data from ' . $file, $cmdTester->getDisplay());
 
         if ($isError) {
-            $this->assertContains(
-                'Failed to write <' . $host . $path . '> from \'' . $file . '\' with message \'Client error: 400\'',
-                $cmdTester->getDisplay()
-            );
+            foreach ($errors as $error) {
+                $this->assertContains(
+                    $error,
+                    $cmdTester->getDisplay()
+                );
+            }
         } else {
             $this->assertContains('Wrote <' . $host . $path . '>; rel="self"', $cmdTester->getDisplay());
         }
@@ -129,8 +133,18 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 'http://localhost',
                 __DIR__ . '/fixtures/set-01/test.json',
                 '/core/app/test',
-                true
-                
+                [
+                    'Failed to write <http://localhost/core/app/test> from \'' .
+                    __DIR__ . '/fixtures/set-01/test.json\' with message \'Client error: 400\'',
+                ]
+            ],
+            'missing target in file (user error)' => [
+                'http://localhost',
+                __DIR__ . '/fixtures/set-01/test-3.json',
+                '/core/app/test',
+                [
+                    'Missing target in \'' . __DIR__ . '/fixtures/set-01/test-3.json\'',
+                ]
             ]
         ];
     }
