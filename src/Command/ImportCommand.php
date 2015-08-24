@@ -125,7 +125,7 @@ class ImportCommand extends Command
      * @param string          $targetUrl target url to import resource into
      * @param string          $file      path to file being loaded
      * @param OutputInterface $output    output of the command
-     * @param 
+     * @param Document        $doc       document to load
      *
      * @return Promise/Promise
      */
