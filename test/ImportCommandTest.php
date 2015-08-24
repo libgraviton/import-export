@@ -205,7 +205,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 ],
             ],
             [
-                'decorated' => true
+                'decorated' => true,
+                'verbose' => true,
             ]
         );
         return $cmdTester;
