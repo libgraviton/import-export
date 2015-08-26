@@ -1,0 +1,31 @@
+#!/usr/bin/env php
+<?php
+
+if (strpos(__DIR__, 'vendor') === false) {
+    require __DIR__ . '/../vendor/autoload.php';
+} else {
+    // assume vendor to be on include_path if installed
+    require 'vendor/autoload.php';
+}
+
+use Graviton\ImportExport\Command\ImportCommand;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Yaml\Parser;
+use Symfony\Component\VarDumper\Cloner\VarCloner;
+use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
+use GuzzleHttp\Client;
+use Webuni\FrontMatter\FrontMatter;
+
+$application = new Application();
+$application->add(
+    new ImportCommand(
+        new Finder(),
+        new Client(),
+        new FrontMatter(),
+        new Parser(),
+        new VarCloner(),
+        new Dumper()
+    )
+);
+$application->run();

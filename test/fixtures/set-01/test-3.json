@@ -1,0 +1,4 @@
+---
+notarget: is configured here
+---
+{ "id": "test", "showInMenu": true, "order": 100, "name": {"en": "Test"} }
