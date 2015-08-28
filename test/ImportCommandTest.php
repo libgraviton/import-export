@@ -185,12 +185,69 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * test rewriting of contents with --rewrite-host
+     *
+     * @return void
+     */
+    public function testRewrite()
+    {
+        $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
+
+        $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
+
+        $clientMock
+            ->method('requestAsync')
+            ->with(
+                $this->equalTo('PUT'),
+                $this->equalTo('http://example.com/core/module/test'),
+                $this->equalTo(['json' => 'http://example.com/core/app/test'])
+            )
+            ->will($this->returnValue($promiseMock));
+
+        $responseMock = $this->getMock('Psr\Http\Message\ResponseInterface');
+
+        $responseMock
+            ->method('getHeader')
+            ->with('Link')
+            ->willReturn(['<http://example.com/core/module/test>; rel="self"']);
+
+        $promiseMock
+            ->method('then')
+            ->will(
+                $this->returnCallback(
+                    function ($ok) use ($responseMock) {
+                        $ok($responseMock);
+                    }
+                )
+            );
+
+        $sut = new ImportCommand(
+            new Finder(),
+            $clientMock,
+            new FrontMatter(),
+            new Parser(),
+            new VarCloner(),
+            new Dumper()
+        );
+
+        $cmdTester = $this->getTester(
+            $sut, 
+            __DIR__ . '/fixtures/set-01/test-4.json',
+            [
+                'host' => 'http://example.com',
+                '--rewrite-host' => 'http://localhost'
+            ]
+        );
+    }
+
+    /**
      * @param ImportCommand $sut  command under test
      * @param string        $file file to load
+     * @param array         $args additional arguments
      *
      * @return CommandTester
      */
-    private function getTester(ImportCommand $sut, $file)
+    private function getTester(ImportCommand $sut, $file, array $args = [])
     {
         $app = new Application();
         $app->add($sut);
@@ -198,13 +255,16 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
         $cmd = $app->find('g:i');
         $cmdTester = new CommandTester($cmd);
         $cmdTester->execute(
-            [
-                'command' => $cmd->getName(),
-                'host' => 'http://localhost',
-                'file' => [
-                    $file
+            array_merge(
+                [
+                    'command' => $cmd->getName(),
+                    'host' => 'http://localhost',
+                    'file' => [
+                        $file
+                    ],
                 ],
-            ],
+                $args
+            ),
             [
                 'decorated' => true,
                 'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
