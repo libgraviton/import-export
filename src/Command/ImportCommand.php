@@ -12,6 +12,7 @@ namespace Graviton\ImportExport\Command;
 use Graviton\ImportExport\Exception\MissingTargetException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
@@ -97,6 +98,13 @@ class ImportCommand extends Command
         $this
             ->setName('graviton:import')
             ->setDescription('Import files from a folder or file.')
+            ->addOption(
+                'rewrite-host',
+                'r',
+                InputOption::VALUE_OPTIONAL,
+                'Replace the value of this option with the <host> value before importing.',
+                'http://localhost'
+            )
             ->addArgument(
                 'host',
                 InputArgument::REQUIRED,
@@ -120,8 +128,8 @@ class ImportCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $host = $input->getArgument('host');
-
         $files = $input->getArgument('file');
+        $rewriteHost = $input->getOption('rewrite-host');
 
         $finder = $this->finder->files();
 
@@ -134,22 +142,23 @@ class ImportCommand extends Command
         }
 
         try {
-            $this->importPaths($finder, $output, $host);
+            $this->importPaths($finder, $output, $host, $rewriteHost);
         } catch (MissingTargetException $e) {
             $output->writeln('<error>' . $e->getMessage() . '</error>');
         }
     }
 
     /**
-     * @param Finder          $finder finder primmed with files to import
-     * @param OutputInterface $output output interfac
-     * @param string          $host   host to import into
+     * @param Finder          $finder      finder primmed with files to import
+     * @param OutputInterface $output      output interfac
+     * @param string          $host        host to import into
+     * @param string          $rewriteHost string to replace with value from $host during loading
      *
      * @return void
      *
      * @throws MissingTargetException
      */
-    protected function importPaths(Finder $finder, OutputInterface $output, $host)
+    protected function importPaths(Finder $finder, OutputInterface $output, $host, $rewriteHost)
     {
         $promises = [];
         foreach ($finder as $file) {
@@ -163,7 +172,7 @@ class ImportCommand extends Command
 
             $targetUrl = sprintf('%s%s', $host, $doc->getData()['target']);
 
-            $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc);
+            $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc, $host, $rewriteHost);
         }
 
         try {
@@ -174,20 +183,24 @@ class ImportCommand extends Command
     }
 
     /**
-     * @param string          $targetUrl target url to import resource into
-     * @param string          $file      path to file being loaded
-     * @param OutputInterface $output    output of the command
-     * @param Document        $doc       document to load
+     * @param string          $targetUrl   target url to import resource into
+     * @param string          $file        path to file being loaded
+     * @param OutputInterface $output      output of the command
+     * @param Document        $doc         document to load
+     * @param string          $host        host to import into
+     * @param string          $rewriteHost string to replace with value from $host during loading
      *
      * @return Promise\Promise
      */
-    protected function importResource($targetUrl, $file, OutputInterface $output, Document $doc)
+    protected function importResource($targetUrl, $file, OutputInterface $output, Document $doc, $host, $rewriteHost)
     {
+        $content = str_replace($rewriteHost, $host, $doc->getContent());
+
         $promise = $this->client->requestAsync(
             'PUT',
             $targetUrl,
             [
-                'json' => $this->parser->parse($doc->getContent(), false, false, true)
+                'json' => $this->parser->parse($content, false, false, true)
             ]
         );
         $promise->then(
