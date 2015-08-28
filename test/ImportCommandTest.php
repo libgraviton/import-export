@@ -238,6 +238,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 '--rewrite-host' => 'http://localhost'
             ]
         );
+        $this->assertContains('Wrote <http://example.com/core/module/test>; rel="self"', $cmdTester->getDisplay());
     }
 
     /**
