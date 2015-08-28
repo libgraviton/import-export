@@ -231,7 +231,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
         );
 
         $cmdTester = $this->getTester(
-            $sut, 
+            $sut,
             __DIR__ . '/fixtures/set-01/test-4.json',
             [
                 'host' => 'http://example.com',
