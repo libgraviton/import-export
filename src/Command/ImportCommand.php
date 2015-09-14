@@ -198,13 +198,11 @@ class ImportCommand extends Command
     {
         $content = str_replace($rewriteHost, $host, $doc->getContent());
 
-        $data = $this->parseContent($content, $file);
-
         $promise = $this->client->requestAsync(
             'PUT',
             $targetUrl,
             [
-                'json' => $data,
+                'json' => $this->parseContent($content, $file),
             ]
         );
         $promise->then(
