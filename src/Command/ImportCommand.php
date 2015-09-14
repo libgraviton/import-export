@@ -10,6 +10,8 @@
 namespace Graviton\ImportExport\Command;
 
 use Graviton\ImportExport\Exception\MissingTargetException;
+use Graviton\ImportExport\Exception\JsonParseException;
+use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
@@ -200,7 +202,7 @@ class ImportCommand extends Command
             'PUT',
             $targetUrl,
             [
-                'json' => $this->parser->parse($content, false, false, true)
+                'json' => $this->parseContent($content, $file),
             ]
         );
         $promise->then(
@@ -239,5 +241,35 @@ class ImportCommand extends Command
             }
         );
         return $promise;
+    }
+
+    /**
+     * parse contents of a file depending on type
+     *
+     * @param string $content contents part of file
+     * @param string $file    full path to file
+     *
+     * @return mixed
+     */
+    protected function parseContent($content, $file)
+    {
+        if (substr($file, -5) == '.json') {
+            $data = json_decode($content);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new JsonParseException(
+                    sprintf(
+                        '%s in %s',
+                        json_last_error_msg(),
+                        $file
+                    )
+                );
+            }
+        } elseif (substr($file, -4) == '.yml') {
+            $data = $this->parser->parse($content, false, false, true);
+        } else {
+            throw new UnknownFileTypeException($file);
+        }
+
+        return $data;
     }
 }
