@@ -11,6 +11,7 @@ namespace Graviton\ImportExport\Command;
 
 use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
+use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
@@ -267,6 +268,8 @@ class ImportCommand extends Command
             }
         } elseif (substr($file, -4) == '.yml') {
             $data = $this->parser->parse($content, false, false, true);
+        } else {
+            throw new UnknownFileTypeException($file);
         }
 
         return $data;
