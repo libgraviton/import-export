@@ -35,9 +35,18 @@ target: /core/app/test
 { "id": "test", "name": { "en": "Test" }, "showInMenu": true, "order": 100 }
 ```
 
+## Building phar package
+
+Run phar build:
+
+```bash
+composer build
+```
+
 ## TODO
 
 * [x] implement importer
 * [ ] implement exporter
-* [ ] build, deploy and document phar usage
+* [x] build phar 
+* [ ] deploy and document phar usage
 
