@@ -1,0 +1,35 @@
+{
+  "chmod": "0755",
+  "directories": [
+    "src"
+  ],
+  "files": [
+    "README.md"
+  ],
+  "finder": [
+    {
+      "name": "*.php",
+      "exclude": [
+        "Tests",
+        "tests",
+        "phpunit",
+        "php_codesniffer",
+        "codesniffer",
+        "phpdocumentor",
+        "phpspec",
+        "kherge",
+        "box",
+        "doctrine",
+        "herrera-io/version",
+        "herrera-io/annotations",
+        "herrera-io/box",
+        "justinrainbow/json-schema"
+      ],
+      "in": "vendor"
+    }
+  ],
+  "main": "bin/graviton-import-export",
+  "output": "graviton-import-export.phar",
+  "git-version": "%package_version%",
+  "stub": true
+}

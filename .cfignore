@@ -1,0 +1,13 @@
+vendor/
+composer.json
+composer.lock
+README.md
+bin/
+box.json
+manifest.yml
+src/
+test/
+phpunit.xml.dist
+.gitignore
+.travis.yml
+.cfignore

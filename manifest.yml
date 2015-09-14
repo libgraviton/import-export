@@ -1,0 +1,7 @@
+---
+applications:
+- name: graviton-import-export-unstable
+  buildpack: https://github.com/cloudfoundry/staticfile-buildpack.git
+  memory: 32M
+  env:
+    FORCE_HTTPS: true

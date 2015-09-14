@@ -35,9 +35,28 @@ target: /core/app/test
 { "id": "test", "name": { "en": "Test" }, "showInMenu": true, "order": 100 }
 ```
 
+## Building phar package
+
+Run phar build:
+
+```bash
+composer build
+```
+
+### Deploying phar host
+
+```bash
+cf push <name-of-host>
+```
+
+Or use [deploy-scripts](https://github.com/libgraviton/deploy-scripts) to deploy in automated blue/green fashion.
+
 ## TODO
 
 * [x] implement importer
 * [ ] implement exporter
-* [ ] build, deploy and document phar usage
+* [x] build phar 
+* [x] deploy phar
+* [ ] automate phar deployment
+* [ ] document phar usage
 
