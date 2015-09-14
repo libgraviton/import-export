@@ -43,10 +43,20 @@ Run phar build:
 composer build
 ```
 
+### Deploying phar host
+
+```bash
+cf push <name-of-host>
+```
+
+Or use [deploy-scripts](https://github.com/libgraviton/deploy-scripts) to deploy in automated blue/green fashion.
+
 ## TODO
 
 * [x] implement importer
 * [ ] implement exporter
 * [x] build phar 
-* [ ] deploy and document phar usage
+* [x] deploy phar
+* [ ] automate phar deployment
+* [ ] document phar usage
 
