@@ -256,7 +256,7 @@ class ImportCommand extends Command
     {
         if (substr($file, -5) == '.json') {
             $data = json_decode($content);
-            if (json_last_error() !== JSON_ERROR_NONE) { 
+            if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new JsonParseException(
                     sprintf(
                         '%s in %s',
@@ -265,7 +265,7 @@ class ImportCommand extends Command
                     )
                 );
             }
-        } else if (substr($file, -4) == '.yml') {
+        } elseif (substr($file, -4) == '.yml') {
             $data = $this->parser->parse($content, false, false, true);
         }
 
