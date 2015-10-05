@@ -24,6 +24,7 @@ use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
 use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\BadResponseException;
 use Webuni\FrontMatter\FrontMatter;
 use Webuni\FrontMatter\Document;
 use Psr\Http\Message\ResponseInterface;
@@ -107,6 +108,12 @@ class ImportCommand extends Command
                 'Replace the value of this option with the <host> value before importing.',
                 'http://localhost'
             )
+            ->addOption(
+                'sync-requests',
+                's',
+                InputOption::VALUE_NONE,
+                'Send requests synchronously'
+            )
             ->addArgument(
                 'host',
                 InputArgument::REQUIRED,
@@ -132,6 +139,7 @@ class ImportCommand extends Command
         $host = $input->getArgument('host');
         $files = $input->getArgument('file');
         $rewriteHost = $input->getOption('rewrite-host');
+        $sync = $input->getOption('sync-requests');
 
         $finder = $this->finder->files();
 
@@ -144,7 +152,7 @@ class ImportCommand extends Command
         }
 
         try {
-            $this->importPaths($finder, $output, $host, $rewriteHost);
+            $this->importPaths($finder, $output, $host, $rewriteHost, $sync);
         } catch (MissingTargetException $e) {
             $output->writeln('<error>' . $e->getMessage() . '</error>');
         }
@@ -155,12 +163,13 @@ class ImportCommand extends Command
      * @param OutputInterface $output      output interfac
      * @param string          $host        host to import into
      * @param string          $rewriteHost string to replace with value from $host during loading
+     * @param boolean         $sync        send requests syncronously
      *
      * @return void
      *
      * @throws MissingTargetException
      */
-    protected function importPaths(Finder $finder, OutputInterface $output, $host, $rewriteHost)
+    protected function importPaths(Finder $finder, OutputInterface $output, $host, $rewriteHost, $sync = false)
     {
         $promises = [];
         foreach ($finder as $file) {
@@ -174,7 +183,7 @@ class ImportCommand extends Command
 
             $targetUrl = sprintf('%s%s', $host, $doc->getData()['target']);
 
-            $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc, $host, $rewriteHost);
+            $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc, $host, $rewriteHost, $sync);
         }
 
         try {
@@ -191,55 +200,80 @@ class ImportCommand extends Command
      * @param Document        $doc         document to load
      * @param string          $host        host to import into
      * @param string          $rewriteHost string to replace with value from $host during loading
+     * @param boolean         $sync        send requests syncronously
      *
-     * @return Promise\Promise
+     * @return Promise\Promise|null
      */
-    protected function importResource($targetUrl, $file, OutputInterface $output, Document $doc, $host, $rewriteHost)
-    {
+    protected function importResource(
+        $targetUrl,
+        $file,
+        OutputInterface $output,
+        Document $doc,
+        $host,
+        $rewriteHost,
+        $sync = false
+    ) {
         $content = str_replace($rewriteHost, $host, $doc->getContent());
 
-        $promise = $this->client->requestAsync(
-            'PUT',
-            $targetUrl,
-            [
-                'json' => $this->parseContent($content, $file),
-            ]
-        );
-        $promise->then(
-            function (ResponseInterface $response) use ($output) {
-                $output->writeln(
-                    '<comment>Wrote ' . $response->getHeader('Link')[0] . '</comment>'
-                );
-            },
-            function (RequestException $e) use ($output, $file) {
-                $output->writeln(
-                    '<error>' . str_pad(
-                        sprintf(
-                            'Failed to write <%s> from \'%s\' with message \'%s\'',
-                            $e->getRequest()->getUri(),
-                            $file,
-                            $e->getMessage()
-                        ),
-                        140,
-                        ' '
-                    ) . '</error>'
-                );
-                if ($output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
-                    $this->dumper->dump(
-                        $this->cloner->cloneVar(
-                            $this->parser->parse($e->getResponse()->getBody(), false, false, true)
-                        ),
-                        function ($line, $depth) use ($output) {
-                            if ($depth > 0) {
-                                $output->writeln(
-                                    '<error>' . str_pad(str_repeat('  ', $depth) . $line, 140, ' ') . '</error>'
-                                );
-                            }
+        $successFunc = function (ResponseInterface $response) use ($output) {
+            $output->writeln(
+                '<comment>Wrote ' . $response->getHeader('Link')[0] . '</comment>'
+            );
+        };
+
+        $errFunc = function (RequestException $e) use ($output, $file) {
+            $output->writeln(
+                '<error>' . str_pad(
+                    sprintf(
+                        'Failed to write <%s> from \'%s\' with message \'%s\'',
+                        $e->getRequest()->getUri(),
+                        $file,
+                        $e->getMessage()
+                    ),
+                    140,
+                    ' '
+                ) . '</error>'
+            );
+            if ($output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
+                $this->dumper->dump(
+                    $this->cloner->cloneVar(
+                        $this->parser->parse($e->getResponse()->getBody(), false, false, true)
+                    ),
+                    function ($line, $depth) use ($output) {
+                        if ($depth > 0) {
+                            $output->writeln(
+                                '<error>' . str_pad(str_repeat('  ', $depth) . $line, 140, ' ') . '</error>'
+                            );
                         }
-                    );
-                }
+                    }
+                );
             }
-        );
+        };
+
+        if ($sync === false) {
+            $promise = $this->client->requestAsync(
+                'PUT',
+                $targetUrl,
+                [
+                    'json' => $this->parseContent($content, $file)
+                ]
+            );
+            $promise->then($successFunc, $errFunc);
+        } else {
+            try {
+                $successFunc(
+                    $this->client->request(
+                        'PUT',
+                        $targetUrl,
+                        [
+                            'json' => $this->parseContent($content, $file),
+                        ]
+                    )
+                );
+            } catch (BadResponseException $e) {
+                $errFunc($e);
+            }
+        }
         return $promise;
     }
 
