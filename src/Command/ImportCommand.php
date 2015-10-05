@@ -260,8 +260,8 @@ class ImportCommand extends Command
             );
             $promise->then($successFunc, $errFunc);
         } else {
+            $promise = new Promise\Promise;
             try {
-                $promise = new Promise\Promise;
                 $promise->resolve(
                     $successFunc(
                         $this->client->request(
@@ -274,7 +274,9 @@ class ImportCommand extends Command
                     )
                 );
             } catch (BadResponseException $e) {
-                $errFunc($e);
+                $promise->resolve(
+                    $errFunc($e)
+                );
             }
         }
         return $promise;
