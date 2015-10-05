@@ -261,17 +261,18 @@ class ImportCommand extends Command
             $promise->then($successFunc, $errFunc);
         } else {
             try {
-                $successFunc(
-                    $this->client->request(
-                        'PUT',
-                        $targetUrl,
-                        [
-                            'json' => $this->parseContent($content, $file),
-                        ]
+                $promise = new Promise\Promise;
+                $promise->resolve(
+                    $successFunc(
+                        $this->client->request(
+                            'PUT',
+                            $targetUrl,
+                            [
+                                'json' => $this->parseContent($content, $file),
+                            ]
+                        )
                     )
                 );
-                $promise = new Promise\Promise;
-                $promise->resolve($response);
             } catch (BadResponseException $e) {
                 $errFunc($e);
             }
