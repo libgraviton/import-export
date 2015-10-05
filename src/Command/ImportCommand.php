@@ -270,6 +270,8 @@ class ImportCommand extends Command
                         ]
                     )
                 );
+                $promise = new Promise\Promise;
+                $promise->resolve($response);
             } catch (BadResponseException $e) {
                 $errFunc($e);
             }
