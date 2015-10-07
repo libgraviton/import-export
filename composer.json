@@ -1,0 +1,51 @@
+{
+    "name": "graviton/import-export",
+    "description": "Tooling to help importing and exporting graviton data through REST.",
+    "type": "cli",
+    "license": "GPL",
+    "authors": [
+        {
+            "name": "Lucas Bickel",
+            "email": "lucas.bickel@swisscom.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5",
+        "symfony/console": "^2.7",
+        "symfony/finder": "^2.7",
+        "guzzlehttp/guzzle": "^6.0",
+        "webuni/front-matter": "^0.1.0",
+        "symfony/yaml": "^2.7",
+        "symfony/var-dumper": "^2.7"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.8.6",
+        "squizlabs/php_codesniffer": "~2.2",
+        "libgraviton/codesniffer": "~1.3",
+        "kherge/box": "^2.5"
+    },
+    "scripts": {
+        "check": [
+            "./vendor/bin/phpcs --config-set installed_paths ../../libgraviton/codesniffer/CodeSniffer/Standards",
+            "./vendor/bin/phpcs --standard=PSR1 --ignore='*.css' --ignore='*.js' src/ test/",
+            "./vendor/bin/phpcs --standard=PSR2 --ignore='*.css' --ignore='*.js' src/ test/",
+            "./vendor/bin/phpcs --standard=ENTB --ignore='*.css' --ignore='*.js' src/ test/"
+        ],
+        "build": [
+            "./vendor/bin/box build -v"
+        ]
+    },
+    "autoload": {
+        "psr-4": {
+            "Graviton\\ImportExport\\": "src/"
+        }
+    },
+    "autload-dev": {
+        "psr-4": {
+            "Graviton\\ImportExport\\Test\\": "test/"
+        }
+    },
+    "bin": [
+        "bin/graviton-import-export"
+    ]
+}
