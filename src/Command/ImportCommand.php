@@ -12,7 +12,6 @@ namespace Graviton\ImportExport\Command;
 use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,62 +33,8 @@ use Psr\Http\Message\ResponseInterface;
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class ImportCommand extends Command
+class ImportCommand extends ImportCommandAbstract
 {
-    /**
-     * @var Finder
-     */
-    private $finder;
-
-    /**
-     * @var Client
-     */
-    private $client;
-
-    /**
-     * @var FrontMatter
-     */
-    private $frontMatter;
-
-    /**
-     * @var Parser
-     */
-    private $parser;
-
-    /**
-     * @var VarCloner
-     */
-    private $cloner;
-
-    /**
-     * @var Dumper
-     */
-    private $dumper;
-
-    /**
-     * @param Finder      $finder      symfony/finder instance
-     * @param Client      $client      guzzle http client
-     * @param FrontMatter $frontMatter frontmatter parser
-     * @param Parser      $parser      yaml/json parser
-     * @param VarCloner   $cloner      var cloner for dumping reponses
-     * @param Dumper      $dumper      dumper for outputing responses
-     */
-    public function __construct(
-        Finder $finder,
-        Client $client,
-        FrontMatter $frontMatter,
-        Parser $parser,
-        VarCloner $cloner,
-        Dumper $dumper
-    ) {
-        $this->finder = $finder;
-        $this->client = $client;
-        $this->frontMatter = $frontMatter;
-        $this->parser = $parser;
-        $this->cloner = $cloner;
-        $this->dumper = $dumper;
-        parent::__construct();
-    }
 
     /**
      * Configures the current command.
@@ -134,28 +79,13 @@ class ImportCommand extends Command
      *
      * @return void
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function doImport(Finder $finder, InputInterface $input, OutputInterface $output)
     {
         $host = $input->getArgument('host');
-        $files = $input->getArgument('file');
         $rewriteHost = $input->getOption('rewrite-host');
         $sync = $input->getOption('sync-requests');
 
-        $finder = $this->finder->files();
-
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                $finder = $finder->in(dirname($file))->name(basename($file));
-            } else {
-                $finder = $finder->in($file);
-            }
-        }
-
-        try {
-            $this->importPaths($finder, $output, $host, $rewriteHost, $sync);
-        } catch (MissingTargetException $e) {
-            $output->writeln('<error>' . $e->getMessage() . '</error>');
-        }
+        $this->importPaths($finder, $output, $host, $rewriteHost, $sync);
     }
 
     /**
@@ -185,6 +115,8 @@ class ImportCommand extends Command
 
             $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc, $host, $rewriteHost, $sync);
         }
+
+        echo "hans"; die;
 
         try {
             Promise\unwrap($promises);
@@ -280,35 +212,5 @@ class ImportCommand extends Command
             }
         }
         return $promise;
-    }
-
-    /**
-     * parse contents of a file depending on type
-     *
-     * @param string $content contents part of file
-     * @param string $file    full path to file
-     *
-     * @return mixed
-     */
-    protected function parseContent($content, $file)
-    {
-        if (substr($file, -5) == '.json') {
-            $data = json_decode($content);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new JsonParseException(
-                    sprintf(
-                        '%s in %s',
-                        json_last_error_msg(),
-                        $file
-                    )
-                );
-            }
-        } elseif (substr($file, -4) == '.yml') {
-            $data = $this->parser->parse($content, false, false, true);
-        } else {
-            throw new UnknownFileTypeException($file);
-        }
-
-        return $data;
     }
 }
