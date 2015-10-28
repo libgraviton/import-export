@@ -3,7 +3,7 @@
  * check import command
  */
 
-namespace Graviton\ImportExport\Tests;
+namespace Graviton\ImportExport\Tests\Command;
 
 use Graviton\ImportExport\Command\ImportCommand;
 use Symfony\Component\Console\Application;
