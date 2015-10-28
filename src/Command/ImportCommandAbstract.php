@@ -68,7 +68,6 @@ abstract class ImportCommandAbstract extends Command
 
     /**
      * @param Finder      $finder      symfony/finder instance
-     * @param Client      $client      guzzle http client
      * @param FrontMatter $frontMatter frontmatter parser
      * @param Parser      $parser      yaml/json parser
      * @param VarCloner   $cloner      var cloner for dumping reponses
@@ -76,14 +75,12 @@ abstract class ImportCommandAbstract extends Command
      */
     public function __construct(
         Finder $finder,
-        Client $client,
         FrontMatter $frontMatter,
         Parser $parser,
         VarCloner $cloner,
         Dumper $dumper
     ) {
         $this->finder = $finder;
-        $this->client = $client;
         $this->frontMatter = $frontMatter;
         $this->parser = $parser;
         $this->cloner = $cloner;

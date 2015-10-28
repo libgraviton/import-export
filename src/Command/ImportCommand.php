@@ -37,6 +37,32 @@ class ImportCommand extends ImportCommandAbstract
 {
 
     /**
+     * @param Client      $client      guzzle http client
+     * @param Finder      $finder      symfony/finder instance
+     * @param FrontMatter $frontMatter frontmatter parser
+     * @param Parser      $parser      yaml/json parser
+     * @param VarCloner   $cloner      var cloner for dumping reponses
+     * @param Dumper      $dumper      dumper for outputing responses
+     */
+    public function __construct(
+        Client $client,
+        Finder $finder,
+        FrontMatter $frontMatter,
+        Parser $parser,
+        VarCloner $cloner,
+        Dumper $dumper
+    ) {
+        parent::__construct(
+            $finder,
+            $frontMatter,
+            $parser,
+            $cloner,
+            $dumper
+        );
+        $this->client = $client;
+    }
+
+    /**
      * Configures the current command.
      *
      * @return void
@@ -74,6 +100,7 @@ class ImportCommand extends ImportCommandAbstract
     /**
      * Executes the current command.
      *
+     * @param Finder          $finder Finder
      * @param InputInterface  $input  User input on console
      * @param OutputInterface $output Output of the command
      *
@@ -115,8 +142,6 @@ class ImportCommand extends ImportCommandAbstract
 
             $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc, $host, $rewriteHost, $sync);
         }
-
-        echo "hans"; die;
 
         try {
             Promise\unwrap($promises);
