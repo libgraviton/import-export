@@ -10,6 +10,7 @@ if (strpos(__DIR__, 'vendor') === false) {
 
 use Graviton\ImportExport\Command\ImportCommand;
 use Graviton\ImportExport\Command\CoreExportCommand;
+use Graviton\ImportExport\Command\CoreImportCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
@@ -17,6 +18,8 @@ use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
 use GuzzleHttp\Client;
 use Webuni\FrontMatter\FrontMatter;
+use Symfony\Component\Filesystem\Filesystem;
+use Graviton\ImportExport\Util\JsonSerializer;
 
 $application = new Application();
 $application->add(
@@ -30,10 +33,18 @@ $application->add(
     )
 );
 $application->add(
+    new CoreImportCommand(
+        new \MongoClient(),
+        new FrontMatter(),
+        new JsonSerializer(),
+        new Finder()
+    )
+);
+$application->add(
     new CoreExportCommand(
-        new MongoClient(),
-        new \Symfony\Component\Filesystem\Filesystem(),
-        new \Zumba\Util\JsonSerializer(),
+        new \MongoClient(),
+        new Filesystem(),
+        new JsonSerializer(),
         new FrontMatter()
     )
 );
