@@ -7,6 +7,7 @@ namespace Graviton\ImportExport\Command;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Webuni\FrontMatter\FrontMatter;
@@ -82,22 +83,25 @@ class CoreImportCommand extends ImportCommandAbstract
     protected function doImport(Finder $finder, InputInterface $input, OutputInterface $output)
     {
         foreach ($finder as $file) {
-            $this->importResource($file);
+            $this->importResource($file, $output);
         }
     }
 
     /**
      * import a single file into a collection
      *
-     * @param File $file file
+     * @param File            $file   file
+     * @param OutputInterface $output Output of the command
      *
      * @return void
      */
-    private function importResource($file)
+    private function importResource($file, $output)
     {
         $doc = $this->frontMatter->parse($file->getContents());
         $origDoc = $this->serializer->unserialize($doc->getContent());
         $collectionName = $doc->getData()['collection'];
         $this->client->selectCollection('db', $collectionName)->save($origDoc);
+
+        $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
     }
 }
