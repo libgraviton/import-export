@@ -10,7 +10,7 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
 use Webuni\FrontMatter\FrontMatter;
-use Zumba\Util\JsonSerializer;
+use Graviton\ImportExport\Util\JsonSerializer;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
