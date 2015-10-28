@@ -56,7 +56,6 @@ class CoreExportCommand extends Command
         JsonSerializer $serializer,
         FrontMatter $frontMatter
     ) {
-
         $this->mongoClient = $mongoClient;
         $this->fs = $fs;
         $this->serializer = $serializer;
