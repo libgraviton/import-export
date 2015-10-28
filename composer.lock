@@ -4,8 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "8a3680318ce1bc0c6793c07c309e59df",
-    "content-hash": "4aec3e52e65b2468413419af00cdfc3e",
+    "hash": "f918f20cb81e9fbff68c48f9324397f6",
+    "content-hash": "0d6b67b9670217e5dbb3af2db956aaa3",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -532,6 +532,60 @@
                 "yaml"
             ],
             "time": "2015-08-11 13:23:08"
+        },
+        {
+            "name": "zumba/json-serializer",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/zumba/json-serializer.git",
+                "reference": "61cb3a9458146b2b91e8f7700cee80cad1bf9279"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/zumba/json-serializer/zipball/61cb3a9458146b2b91e8f7700cee80cad1bf9279",
+                "reference": "61cb3a9458146b2b91e8f7700cee80cad1bf9279",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.6"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "3.7.*"
+            },
+            "suggest": {
+                "ext-mbstring": "To support unescaped unicode characters in PHP 5.3."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Zumba\\Util": "src/",
+                    "Zumba\\Exception": "src/",
+                    "Zumba\\Util\\Test": "tests/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Juan Basso",
+                    "email": "juan.basso@zumba.com"
+                },
+                {
+                    "name": "Zumba Fitness, LLC",
+                    "email": "engineering@zumba.com"
+                }
+            ],
+            "description": "Serialize PHP variables, including objects, in JSON format. Support to unserialize it too.",
+            "homepage": "http://tech.zumba.com",
+            "keywords": [
+                "json",
+                "serialize",
+                "serializer"
+            ],
+            "time": "2014-07-05 20:09:27"
         }
     ],
     "packages-dev": [

@@ -9,6 +9,7 @@ if (strpos(__DIR__, 'vendor') === false) {
 }
 
 use Graviton\ImportExport\Command\ImportCommand;
+use Graviton\ImportExport\Command\CoreExportCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
@@ -26,6 +27,14 @@ $application->add(
         new Parser(),
         new VarCloner(),
         new Dumper()
+    )
+);
+$application->add(
+    new CoreExportCommand(
+        new MongoClient(),
+        new \Symfony\Component\Filesystem\Filesystem(),
+        new \Zumba\Util\JsonSerializer(),
+        new FrontMatter()
     )
 );
 $application->run();
