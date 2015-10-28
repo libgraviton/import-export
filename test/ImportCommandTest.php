@@ -59,8 +59,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             );
 
         $sut = new ImportCommand(
-            new Finder(),
             $clientMock,
+            new Finder(),
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
@@ -140,8 +140,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             );
 
         $sut = new ImportCommand(
-            new Finder(),
             $clientMock,
+            new Finder(),
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
@@ -222,8 +222,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             );
 
         $sut = new ImportCommand(
-            new Finder(),
             $clientMock,
+            new Finder(),
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
