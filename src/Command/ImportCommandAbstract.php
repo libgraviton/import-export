@@ -13,21 +13,11 @@ use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
-use Symfony\Component\VarDumper\Cloner\VarCloner;
-use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
-use GuzzleHttp\Client;
-use GuzzleHttp\Promise;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\BadResponseException;
 use Webuni\FrontMatter\FrontMatter;
-use Webuni\FrontMatter\Document;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
@@ -42,11 +32,6 @@ abstract class ImportCommandAbstract extends Command
     protected $finder;
 
     /**
-     * @var Client
-     */
-    protected $client;
-
-    /**
      * @var FrontMatter
      */
     protected $frontMatter;
@@ -57,34 +42,18 @@ abstract class ImportCommandAbstract extends Command
     protected $parser;
 
     /**
-     * @var VarCloner
-     */
-    protected $cloner;
-
-    /**
-     * @var Dumper
-     */
-    protected $dumper;
-
-    /**
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
      * @param Parser      $parser      yaml/json parser
-     * @param VarCloner   $cloner      var cloner for dumping reponses
-     * @param Dumper      $dumper      dumper for outputing responses
      */
     public function __construct(
         Finder $finder,
         FrontMatter $frontMatter,
-        Parser $parser,
-        VarCloner $cloner,
-        Dumper $dumper
+        Parser $parser
     ) {
         $this->finder = $finder;
         $this->frontMatter = $frontMatter;
         $this->parser = $parser;
-        $this->cloner = $cloner;
-        $this->dumper = $dumper;
         parent::__construct();
     }
 

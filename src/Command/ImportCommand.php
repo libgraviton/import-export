@@ -35,6 +35,22 @@ use Psr\Http\Message\ResponseInterface;
  */
 class ImportCommand extends ImportCommandAbstract
 {
+    /**
+     * @var Client
+     */
+    protected $client;
+
+
+    /**
+     * @var VarCloner
+     */
+    protected $cloner;
+
+
+    /**
+     * @var Dumper
+     */
+    protected $dumper;
 
     /**
      * @param Client      $client      guzzle http client
@@ -55,11 +71,11 @@ class ImportCommand extends ImportCommandAbstract
         parent::__construct(
             $finder,
             $frontMatter,
-            $parser,
-            $cloner,
-            $dumper
+            $parser
         );
         $this->client = $client;
+        $this->cloner = $cloner;
+        $this->dumper = $dumper;
     }
 
     /**
