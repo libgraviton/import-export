@@ -11,10 +11,7 @@ matrix:
   - php: hhvm
   - php: 7.0
 before_script:
-- >
-    if [ $(phpenv version-name) != "hhvm" ] && [ $(phpenv version-name) != "7.0" ]; then
-        echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini;
-    fi
+- echo "extension = mongo.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 - composer install --no-interaction
 - wget https://scrutinizer-ci.com/ocular.phar
 script:
