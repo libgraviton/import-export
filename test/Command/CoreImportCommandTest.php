@@ -56,6 +56,7 @@ class CoreImportCommandTest extends \PHPUnit_Framework_TestCase
 
         $sut = new CoreImportCommand(
             $clientMock,
+            'db',
             new FrontMatter(),
             new JsonSerializer(),
             new Finder()

@@ -7,7 +7,6 @@ namespace Graviton\ImportExport\Command;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Webuni\FrontMatter\FrontMatter;
@@ -37,19 +36,22 @@ class CoreImportCommand extends ImportCommandAbstract
     private $serializer;
 
     /**
-     * @param \MongoClient   $client      symfony/finder instance
-     * @param FrontMatter    $frontMatter frontmatter parser
-     * @param JsonSerializer $serializer  serializer
-     * @param Finder         $finder      finder
+     * @param \MongoClient   $client       symfony/finder instance
+     * @param string         $databaseName database name
+     * @param FrontMatter    $frontMatter  frontmatter parser
+     * @param JsonSerializer $serializer   serializer
+     * @param Finder         $finder       finder
      */
     public function __construct(
         \MongoClient $client,
+        $databaseName,
         FrontMatter $frontMatter,
         JsonSerializer $serializer,
         Finder $finder
     ) {
         parent::__construct($finder);
         $this->client = $client;
+        $this->databaseName = $databaseName;
         $this->frontMatter = $frontMatter;
         $this->serializer = $serializer;
     }
@@ -104,7 +106,7 @@ class CoreImportCommand extends ImportCommandAbstract
             $output->writeln("<error>Could not deserialize file <${file}></error>");
         } else {
             $collectionName = $doc->getData()['collection'];
-            $this->client->selectCollection('db', $collectionName)->save($origDoc);
+            $this->client->selectCollection($this->databaseName, $collectionName)->save($origDoc);
 
             $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
         }

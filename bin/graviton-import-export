@@ -32,9 +32,14 @@ $application->add(
         new Dumper()
     )
 );
+
+// do we have special mongo credentials?
+$mongoCredentials = \Graviton\ImportExport\Util\MongoCredentialsProvider::getConnection();
+
 $application->add(
     new CoreImportCommand(
-        new \MongoClient(),
+        new \MongoClient($mongoCredentials['uri']),
+        $mongoCredentials['db'],
         new FrontMatter(),
         new JsonSerializer(),
         new Finder()
@@ -42,7 +47,8 @@ $application->add(
 );
 $application->add(
     new CoreExportCommand(
-        new \MongoClient(),
+        new \MongoClient($mongoCredentials['uri']),
+        $mongoCredentials['db'],
         new Filesystem(),
         new JsonSerializer(),
         new FrontMatter()

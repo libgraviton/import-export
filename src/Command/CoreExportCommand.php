@@ -31,6 +31,11 @@ class CoreExportCommand extends Command
     private $mongoClient;
 
     /**
+     * @var string
+     */
+    private $databaseName;
+
+    /**
      * @var Filesystem filesystem
      */
     private $fs;
@@ -46,18 +51,21 @@ class CoreExportCommand extends Command
     private $frontMatter;
 
     /**
-     * @param \MongoClient   $mongoClient mongoclient
-     * @param Filesystem     $fs          symfony filesystem
-     * @param JsonSerializer $serializer  json serializer
-     * @param FrontMatter    $frontMatter front matter
+     * @param \MongoClient   $mongoClient  mongoclient
+     * @param string         $databaseName database name
+     * @param Filesystem     $fs           symfony filesystem
+     * @param JsonSerializer $serializer   json serializer
+     * @param FrontMatter    $frontMatter  front matter
      */
     public function __construct(
         \MongoClient $mongoClient,
+        $databaseName,
         Filesystem $fs,
         JsonSerializer $serializer,
         FrontMatter $frontMatter
     ) {
         $this->mongoClient = $mongoClient;
+        $this->databaseName = $databaseName;
         $this->fs = $fs;
         $this->serializer = $serializer;
         $this->frontMatter = $frontMatter;
@@ -80,6 +88,12 @@ class CoreExportCommand extends Command
                 InputOption::VALUE_REQUIRED,
                 'An optional filter for collection names. Can contain globs (*)'
             )
+            ->addOption(
+                'databaseName',
+                'd',
+                InputOption::VALUE_REQUIRED,
+                'An optional database name to where to export from'
+            )
             ->addArgument(
                 'destinationDir',
                 InputArgument::REQUIRED,
@@ -99,6 +113,12 @@ class CoreExportCommand extends Command
     {
         $destinationDir = $input->getArgument('destinationDir');
 
+        // dbname override?
+        $dbName = $input->getOption('databaseName');
+        if (!is_null($dbName)) {
+            $this->databaseName = $dbName;
+        }
+
         if (!$this->fs->exists($destinationDir)) {
             throw new FileNotFoundException(sprintf('Destination "%s" does not exist', $destinationDir));
         }
@@ -113,7 +133,7 @@ class CoreExportCommand extends Command
             $collectionNameFilter = '/^'.str_replace('*', '(.*)', $collectionNameFilter).'/i';
         }
 
-        foreach ($this->mongoClient->db->listCollections() as $collection) {
+        foreach ($this->mongoClient->{$this->databaseName}->listCollections() as $collection) {
             if ($collectionNameFilter !== null && preg_match($collectionNameFilter, $collection->getName()) === 0) {
                 continue;
             }

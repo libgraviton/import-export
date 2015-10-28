@@ -77,6 +77,7 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
 
         $sut = new CoreExportCommand(
             $clientMock,
+            'db',
             new Filesystem(),
             new JsonSerializer(),
             new FrontMatter()
