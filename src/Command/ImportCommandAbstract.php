@@ -1,23 +1,16 @@
 <?php
 /**
- * import json data into graviton
- *
- * Supports importing json data from either a single file or a complete folder of files.
- *
- * The data needs to contain frontmatter to hint where the bits and pieces should go.
+ * base abstract for import based commands where a bunch of file must be collected and
+ * done something with them..
  */
 
 namespace Graviton\ImportExport\Command;
 
 use Graviton\ImportExport\Exception\MissingTargetException;
-use Graviton\ImportExport\Exception\JsonParseException;
-use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Yaml\Parser;
-use Webuni\FrontMatter\FrontMatter;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
@@ -32,28 +25,12 @@ abstract class ImportCommandAbstract extends Command
     protected $finder;
 
     /**
-     * @var FrontMatter
-     */
-    protected $frontMatter;
-
-    /**
-     * @var Parser
-     */
-    protected $parser;
-
-    /**
-     * @param Finder      $finder      symfony/finder instance
-     * @param FrontMatter $frontMatter frontmatter parser
-     * @param Parser      $parser      yaml/json parser
+     * @param Finder $finder finder instance
      */
     public function __construct(
-        Finder $finder,
-        FrontMatter $frontMatter,
-        Parser $parser
+        Finder $finder
     ) {
         $this->finder = $finder;
-        $this->frontMatter = $frontMatter;
-        $this->parser = $parser;
         parent::__construct();
     }
 
@@ -95,34 +72,4 @@ abstract class ImportCommandAbstract extends Command
      * @return mixed
      */
     abstract protected function doImport(Finder $finder, InputInterface $input, OutputInterface $output);
-
-    /**
-     * parse contents of a file depending on type
-     *
-     * @param string $content contents part of file
-     * @param string $file    full path to file
-     *
-     * @return mixed
-     */
-    protected function parseContent($content, $file)
-    {
-        if (substr($file, -5) == '.json') {
-            $data = json_decode($content);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new JsonParseException(
-                    sprintf(
-                        '%s in %s',
-                        json_last_error_msg(),
-                        $file
-                    )
-                );
-            }
-        } elseif (substr($file, -4) == '.yml') {
-            $data = $this->parser->parse($content, false, false, true);
-        } else {
-            throw new UnknownFileTypeException($file);
-        }
-
-        return $data;
-    }
 }

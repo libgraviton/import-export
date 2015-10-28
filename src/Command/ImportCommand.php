@@ -40,12 +40,20 @@ class ImportCommand extends ImportCommandAbstract
      */
     protected $client;
 
+    /**
+     * @var FrontMatter
+     */
+    protected $frontMatter;
+
+    /**
+     * @var Parser
+     */
+    protected $parser;
 
     /**
      * @var VarCloner
      */
     protected $cloner;
-
 
     /**
      * @var Dumper
@@ -69,11 +77,11 @@ class ImportCommand extends ImportCommandAbstract
         Dumper $dumper
     ) {
         parent::__construct(
-            $finder,
-            $frontMatter,
-            $parser
+            $finder
         );
         $this->client = $client;
+        $this->frontMatter = $frontMatter;
+        $this->parser = $parser;
         $this->cloner = $cloner;
         $this->dumper = $dumper;
     }
@@ -253,5 +261,35 @@ class ImportCommand extends ImportCommandAbstract
             }
         }
         return $promise;
+    }
+
+    /**
+     * parse contents of a file depending on type
+     *
+     * @param string $content contents part of file
+     * @param string $file    full path to file
+     *
+     * @return mixed
+     */
+    protected function parseContent($content, $file)
+    {
+        if (substr($file, -5) == '.json') {
+            $data = json_decode($content);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new JsonParseException(
+                    sprintf(
+                        '%s in %s',
+                        json_last_error_msg(),
+                        $file
+                    )
+                );
+            }
+        } elseif (substr($file, -4) == '.yml') {
+            $data = $this->parser->parse($content, false, false, true);
+        } else {
+            throw new UnknownFileTypeException($file);
+        }
+
+        return $data;
     }
 }
