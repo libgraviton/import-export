@@ -103,8 +103,8 @@ class CoreImportCommandTest extends \PHPUnit_Framework_TestCase
         // ids..
         $this->assertSame('Record1', $this->saves[0]['_id']);
         $this->assertSame('Record2', $this->saves[1]['_id']);
-        $this->assertSame('Record4', $this->saves[2]['_id']);
-        $this->assertSame('Record3', $this->saves[3]['_id']);
+        $this->assertSame('Record3', $this->saves[2]['_id']);
+        $this->assertSame('Record4', $this->saves[3]['_id']);
 
         // mongodate?
         $this->assertTrue(($this->saves[0]['date'] instanceof \MongoDate));
