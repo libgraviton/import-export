@@ -56,16 +56,21 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
         ];
 
         $collectionOne = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
-        $collectionOne->expects($this->exactly(3))->method('getName')->willReturn('Dude');
+        $collectionOne->expects($this->exactly(4))->method('getName')->willReturn('Dude');
         $collectionOne->expects($this->once())->method('find')->willReturn($collectionData[0]);
 
         $collectionTwo = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
-        $collectionTwo->expects($this->exactly(3))->method('getName')->willReturn('Dudess');
+        $collectionTwo->expects($this->exactly(4))->method('getName')->willReturn('Dudess');
         $collectionTwo->expects($this->once())->method('find')->willReturn($collectionData[1]);
+
+        // this one is filtered out and gets called differently
+        $collectionThree = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
+        $collectionThree->expects($this->exactly(1))->method('getName')->willReturn('Franz');
+        $collectionThree->expects($this->never())->method('find')->willReturn($collectionData[1]);
 
         $dbMock = $this->getMockBuilder('\MongoDb')->disableOriginalConstructor()->getMock();
         $dbMock->expects($this->once())->method('listCollections')->willReturn(
-            [$collectionOne, $collectionTwo]
+            [$collectionOne, $collectionTwo, $collectionThree]
         );
 
         $clientMock->db = $dbMock;
@@ -101,7 +106,8 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
 
         $this->cmdTester->execute(
             [
-                'destinationDir' => $this->destinationDir
+                'destinationDir' => $this->destinationDir,
+                '--collection' => 'dud*'
             ]
         );
 
@@ -121,6 +127,9 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(is_dir($this->destinationDir.'Dudess'));
         $this->assertFileExists($this->destinationDir.'Dudess'.DIRECTORY_SEPARATOR.'Record3.json');
         $this->assertFileExists($this->destinationDir.'Dudess'.DIRECTORY_SEPARATOR.'Record4.json');
+
+        // does the ignored not exist?
+        $this->assertFalse(is_dir($this->destinationDir.'Franz'));
     }
 
     /**

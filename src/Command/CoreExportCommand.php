@@ -9,6 +9,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\Filesystem\Filesystem;
@@ -73,6 +74,12 @@ class CoreExportCommand extends Command
         $this
             ->setName('graviton:core:export')
             ->setDescription('Export core resources (from MongoDb) to files')
+            ->addOption(
+                'collection',
+                'c',
+                InputOption::VALUE_REQUIRED,
+                'An optional filter for collection names. Can contain globs (*)'
+            )
             ->addArgument(
                 'destinationDir',
                 InputArgument::REQUIRED,
@@ -100,12 +107,25 @@ class CoreExportCommand extends Command
             $destinationDir .= DIRECTORY_SEPARATOR;
         }
 
+        // should we filter collection names?
+        $collectionNameFilter = $input->getOption('collection');
+        if (!is_null($collectionNameFilter)) {
+            $collectionNameFilter = '/^'.str_replace('*', '(.*)', $collectionNameFilter).'/i';
+        }
+
         foreach ($this->mongoClient->db->listCollections() as $collection) {
+
+            if ($collectionNameFilter !== null && preg_match($collectionNameFilter, $collection->getName()) === 0) {
+                continue;
+            }
+
             $collectionDestinationDir = $destinationDir.$collection->getName().DIRECTORY_SEPARATOR;
 
             if (!$this->fs->exists($collectionDestinationDir)) {
                 $this->fs->mkdir($collectionDestinationDir);
             }
+
+            $output->writeln("<info>Dumping collection <${collection}> to <${collectionDestinationDir}></info>");
 
             $this->dumpCollection($collection, $collectionDestinationDir);
         }
