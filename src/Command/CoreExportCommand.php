@@ -114,7 +114,6 @@ class CoreExportCommand extends Command
         }
 
         foreach ($this->mongoClient->db->listCollections() as $collection) {
-
             if ($collectionNameFilter !== null && preg_match($collectionNameFilter, $collection->getName()) === 0) {
                 continue;
             }
