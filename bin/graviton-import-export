@@ -11,6 +11,7 @@ if (strpos(__DIR__, 'vendor') === false) {
 use Graviton\ImportExport\Command\ImportCommand;
 use Graviton\ImportExport\Command\CoreExportCommand;
 use Graviton\ImportExport\Command\CoreImportCommand;
+use Graviton\ImportExport\Command\CorePurgeCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
@@ -52,6 +53,12 @@ $application->add(
         new Filesystem(),
         new JsonSerializer(),
         new FrontMatter()
+    )
+);
+$application->add(
+    new CorePurgeCommand(
+        new \MongoClient($mongoCredentials['uri']),
+        $mongoCredentials['db']
     )
 );
 $application->run();
