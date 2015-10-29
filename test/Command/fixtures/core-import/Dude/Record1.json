@@ -1,0 +1,12 @@
+---
+collection: Dude
+---
+{
+    "_id": "Record1",
+    "name": "Fred",
+    "date": {
+        "@type": "MongoDate",
+        "sec": 381715200,
+        "usec": 0
+    }
+}

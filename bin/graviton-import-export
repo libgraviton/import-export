@@ -9,6 +9,9 @@ if (strpos(__DIR__, 'vendor') === false) {
 }
 
 use Graviton\ImportExport\Command\ImportCommand;
+use Graviton\ImportExport\Command\CoreExportCommand;
+use Graviton\ImportExport\Command\CoreImportCommand;
+use Graviton\ImportExport\Command\CorePurgeCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
@@ -16,16 +19,48 @@ use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
 use GuzzleHttp\Client;
 use Webuni\FrontMatter\FrontMatter;
+use Symfony\Component\Filesystem\Filesystem;
+use Graviton\ImportExport\Util\JsonSerializer;
 
 $application = new Application();
 $application->add(
     new ImportCommand(
-        new Finder(),
         new Client(),
+        new Finder(),
         new FrontMatter(),
         new Parser(),
         new VarCloner(),
         new Dumper()
     )
 );
+
+if (class_exists('\MongoClient')) {
+    // do we have special mongo credentials?
+    $mongoCredentials = \Graviton\ImportExport\Util\MongoCredentialsProvider::getConnection();
+
+    $application->add(
+        new CoreImportCommand(
+            new \MongoClient($mongoCredentials['uri']),
+            $mongoCredentials['db'],
+            new FrontMatter(),
+            new JsonSerializer(),
+            new Finder()
+        )
+    );
+    $application->add(
+        new CoreExportCommand(
+            new \MongoClient($mongoCredentials['uri']),
+            $mongoCredentials['db'],
+            new Filesystem(),
+            new JsonSerializer(),
+            new FrontMatter()
+        )
+    );
+    $application->add(
+        new CorePurgeCommand(
+            new \MongoClient($mongoCredentials['uri']),
+            $mongoCredentials['db']
+        )
+    );
+}
 $application->run();
