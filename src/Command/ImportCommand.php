@@ -38,27 +38,27 @@ class ImportCommand extends ImportCommandAbstract
     /**
      * @var Client
      */
-    protected $client;
+    private $client;
 
     /**
      * @var FrontMatter
      */
-    protected $frontMatter;
+    private $frontMatter;
 
     /**
      * @var Parser
      */
-    protected $parser;
+    private $parser;
 
     /**
      * @var VarCloner
      */
-    protected $cloner;
+    private $cloner;
 
     /**
      * @var Dumper
      */
-    protected $dumper;
+    private $dumper;
 
     /**
      * @param Client      $client      guzzle http client
