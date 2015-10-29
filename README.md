@@ -16,10 +16,42 @@ Get help:
 ./vendor/bin/graviton-import-export help
 ```
 
+This will show you all available commands.
+
+### Load data to a Graviton instance through REST (using the HTTP interface)
+
 Load from dir:
 
 ```bash
 ./vendor/bin/graviton-import-export graviton:import http://localhost:8000 ./test/fixtures
+```
+
+### Load data into the core database of a Graviton instance
+
+Besides loading data via the HTTP interface, there are *core* commands available that allow you to load data into
+the database backend (MongoDB) of a Graviton instance.
+
+You can import a set of existing files via the `graviton:core:import` command:
+
+```bash
+./vendor/bin/graviton-import-export graviton:core:import ./test/data
+```
+
+The *core* commands file format is slightly different from the normal import format as we need to preserve certain class types.
+Thus, it's best to insert data into MongoDB and export that into the necessary format. This can be done using the export command:
+
+```bash
+./vendor/bin/graviton-import-export graviton:core:export ./test/dump-dir
+```
+
+This will dump all the data in the default database. The `graviton:core:export` has more options, refer to the `--help` print 
+ for more details.
+ 
+Additionally, we have a *purge* command that allows you to easily purge (meaning *delete!*) all collections inside a 
+MongoDB database. You need to pass 'yes' as an only parameter to show that you're sure about that action.
+
+```bash
+./vendor/bin/graviton-import-export graviton:core:purge yes
 ```
 
 ## File format
