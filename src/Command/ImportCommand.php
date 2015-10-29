@@ -12,7 +12,6 @@ namespace Graviton\ImportExport\Command;
 use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -34,13 +33,8 @@ use Psr\Http\Message\ResponseInterface;
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class ImportCommand extends Command
+class ImportCommand extends ImportCommandAbstract
 {
-    /**
-     * @var Finder
-     */
-    private $finder;
-
     /**
      * @var Client
      */
@@ -67,28 +61,29 @@ class ImportCommand extends Command
     private $dumper;
 
     /**
-     * @param Finder      $finder      symfony/finder instance
      * @param Client      $client      guzzle http client
+     * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
      * @param Parser      $parser      yaml/json parser
      * @param VarCloner   $cloner      var cloner for dumping reponses
      * @param Dumper      $dumper      dumper for outputing responses
      */
     public function __construct(
-        Finder $finder,
         Client $client,
+        Finder $finder,
         FrontMatter $frontMatter,
         Parser $parser,
         VarCloner $cloner,
         Dumper $dumper
     ) {
-        $this->finder = $finder;
+        parent::__construct(
+            $finder
+        );
         $this->client = $client;
         $this->frontMatter = $frontMatter;
         $this->parser = $parser;
         $this->cloner = $cloner;
         $this->dumper = $dumper;
-        parent::__construct();
     }
 
     /**
@@ -129,33 +124,19 @@ class ImportCommand extends Command
     /**
      * Executes the current command.
      *
+     * @param Finder          $finder Finder
      * @param InputInterface  $input  User input on console
      * @param OutputInterface $output Output of the command
      *
      * @return void
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function doImport(Finder $finder, InputInterface $input, OutputInterface $output)
     {
         $host = $input->getArgument('host');
-        $files = $input->getArgument('file');
         $rewriteHost = $input->getOption('rewrite-host');
         $sync = $input->getOption('sync-requests');
 
-        $finder = $this->finder->files();
-
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                $finder = $finder->in(dirname($file))->name(basename($file));
-            } else {
-                $finder = $finder->in($file);
-            }
-        }
-
-        try {
-            $this->importPaths($finder, $output, $host, $rewriteHost, $sync);
-        } catch (MissingTargetException $e) {
-            $output->writeln('<error>' . $e->getMessage() . '</error>');
-        }
+        $this->importPaths($finder, $output, $host, $rewriteHost, $sync);
     }
 
     /**

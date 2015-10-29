@@ -3,5 +3,6 @@ applications:
 - name: graviton-import-export-unstable
   buildpack: https://github.com/cloudfoundry/staticfile-buildpack.git
   memory: 32M
+  disk_quota: 100M
   env:
     FORCE_HTTPS: true
