@@ -27,14 +27,14 @@ class JsonSerializer extends BaseSerializer
     protected function unserializeObject($value) {
         $className = $value[static::CLASS_IDENTIFIER_KEY];
 
+        $obj = false;
         if ($className == 'MongoDate') {
             $obj = new \MongoDate($value['sec'], $value['usec']);
-            $this->objectMapping[$this->objectMappingIndex++] = $obj;
-            return $obj;
+        } elseif ($className == 'MongoId') {
+            $obj = new \MongoId($value['$id']);
         }
 
-        if ($className == 'MongoId') {
-            $obj = new \MongoId($value['$id']);
+        if ($obj !== false) {
             $this->objectMapping[$this->objectMappingIndex++] = $obj;
             return $obj;
         }
