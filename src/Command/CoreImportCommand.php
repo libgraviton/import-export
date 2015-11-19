@@ -36,6 +36,11 @@ class CoreImportCommand extends ImportCommandAbstract
     private $serializer;
 
     /**
+     * @var string
+     */
+    private $databaseName;
+
+    /**
      * @param \MongoClient   $client       symfony/finder instance
      * @param string         $databaseName database name
      * @param FrontMatter    $frontMatter  frontmatter parser
