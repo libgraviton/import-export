@@ -12,6 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Webuni\FrontMatter\FrontMatter;
 use Graviton\ImportExport\Util\JsonSerializer;
+use Graviton\ImportExport\Util\MongoCredentialsProvider;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
@@ -42,21 +43,18 @@ class CoreImportCommand extends ImportCommandAbstract
     private $databaseName;
 
     /**
-     * @param \MongoClient   $client       symfony/finder instance
      * @param string         $databaseName database name
      * @param FrontMatter    $frontMatter  frontmatter parser
      * @param JsonSerializer $serializer   serializer
      * @param Finder         $finder       finder
      */
     public function __construct(
-        \MongoClient $client,
         $databaseName,
         FrontMatter $frontMatter,
         JsonSerializer $serializer,
         Finder $finder
     ) {
         parent::__construct($finder);
-        $this->client = $client;
         $this->databaseName = $databaseName;
         $this->frontMatter = $frontMatter;
         $this->serializer = $serializer;
@@ -98,7 +96,10 @@ class CoreImportCommand extends ImportCommandAbstract
     {
         if ($input->getOption('mongodb')) {
             $this->client = new \MongoClient($input->getOption('mongodb'));
-        };
+        } else {
+            $mongoCredentials = MongoCredentialsProvider::getConnection();
+            $this->client = new \MongoClient($mongoCredentials['uri']);
+        }
         foreach ($finder as $file) {
             $this->importResource($file, $output);
         }
