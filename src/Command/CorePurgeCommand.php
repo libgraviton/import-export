@@ -16,6 +16,7 @@ use Symfony\Component\Filesystem\Filesystem;
 use Webuni\FrontMatter\FrontMatter;
 use Webuni\FrontMatter\Document;
 use Zumba\Util\JsonSerializer;
+use Graviton\ImportExport\Util\MongoCredentialsProvider;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
@@ -28,7 +29,7 @@ class CorePurgeCommand extends Command
     /**
      * @var \MongoClient mongoclient
      */
-    private $mongoClient;
+    private $client;
 
     /**
      * @var string
@@ -36,14 +37,11 @@ class CorePurgeCommand extends Command
     private $databaseName;
 
     /**
-     * @param \MongoClient $mongoClient  mongoclient
      * @param string       $databaseName database name
      */
     public function __construct(
-        \MongoClient $mongoClient,
         $databaseName
     ) {
-        $this->mongoClient = $mongoClient;
         $this->databaseName = $databaseName;
         parent::__construct();
     }
@@ -58,6 +56,12 @@ class CorePurgeCommand extends Command
         $this
             ->setName('graviton:core:purge')
             ->setDescription('Purges (removes!) all collections in the database given.')
+            ->addOption(
+                'mongodb',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'MongoDB connection URL.'
+            )
             ->addArgument(
                 'yes',
                 InputArgument::REQUIRED,
@@ -75,13 +79,19 @@ class CorePurgeCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        if ($input->getOption('mongodb')) {
+            $this->client = new \MongoClient($input->getOption('mongodb'));
+        } else {
+            $mongoCredentials = MongoCredentialsProvider::getConnection();
+            $this->client = new \MongoClient($mongoCredentials['uri']);
+        }
         $isSure = $input->getArgument('yes');
 
         if ($isSure != 'yes') {
             throw new \LogicException('You must pass "yes" as parameter to show that you know what you\'re doing');
         }
 
-        foreach ($this->mongoClient->{$this->databaseName}->listCollections() as $collection) {
+        foreach ($this->client->{$this->databaseName}->listCollections() as $collection) {
             $collectionName = $collection->getName();
             $output->writeln("<info>Dropping collection <${collectionName}></info>");
             $collection->drop();

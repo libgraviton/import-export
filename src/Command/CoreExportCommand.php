@@ -7,7 +7,6 @@ namespace Graviton\ImportExport\Command;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
-
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -16,6 +15,8 @@ use Symfony\Component\Filesystem\Filesystem;
 use Webuni\FrontMatter\FrontMatter;
 use Webuni\FrontMatter\Document;
 use Zumba\Util\JsonSerializer;
+use Graviton\ImportExport\Util\MongoCredentialsProvider;
+
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
@@ -51,20 +52,17 @@ class CoreExportCommand extends Command
     private $frontMatter;
 
     /**
-     * @param \MongoClient   $mongoClient  mongoclient
      * @param string         $databaseName database name
      * @param Filesystem     $fs           symfony filesystem
      * @param JsonSerializer $serializer   json serializer
      * @param FrontMatter    $frontMatter  front matter
      */
     public function __construct(
-        \MongoClient $mongoClient,
         $databaseName,
         Filesystem $fs,
         JsonSerializer $serializer,
         FrontMatter $frontMatter
     ) {
-        $this->mongoClient = $mongoClient;
         $this->databaseName = $databaseName;
         $this->fs = $fs;
         $this->serializer = $serializer;
@@ -119,7 +117,10 @@ class CoreExportCommand extends Command
     {
         if ($input->getOption('mongodb')) {
             $this->client = new \MongoClient($input->getOption('mongodb'));
-        };
+        } else {
+            $mongoCredentials = MongoCredentialsProvider::getConnection();
+            $this->client = new \MongoClient($mongoCredentials['uri']);
+        }
 
         $destinationDir = $input->getArgument('destinationDir');
 
