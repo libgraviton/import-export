@@ -83,6 +83,12 @@ class CoreExportCommand extends Command
             ->setName('graviton:core:export')
             ->setDescription('Export core resources (from MongoDb) to files')
             ->addOption(
+                'mongodb',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'MongoDB connection URL.'
+            )
+            ->addOption(
                 'collection',
                 'c',
                 InputOption::VALUE_REQUIRED,
@@ -111,6 +117,10 @@ class CoreExportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        if ($input->getOption('mongodb')) {
+            $this->client = new \MongoClient($input->getOption('mongodb'));
+        };
+
         $destinationDir = $input->getArgument('destinationDir');
 
         // dbname override?
