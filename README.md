@@ -67,6 +67,18 @@ target: /core/app/test
 { "id": "test", "name": { "en": "Test" }, "showInMenu": true, "order": 100 }
 ```
 
+## Building Docker Runtime
+
+```bash
+docker build -t graviton/import-export .
+```
+
+## Docker Runtime
+
+```bash
+docker run --rm -ti -v `pwd`:/data graviton/import-export
+```
+
 ## Building phar package
 
 Run phar build:
