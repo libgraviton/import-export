@@ -40,7 +40,6 @@ if (class_exists('\MongoClient')) {
 
     $application->add(
         new CoreImportCommand(
-            new \MongoClient($mongoCredentials['uri']),
             $mongoCredentials['db'],
             new FrontMatter(),
             new JsonSerializer(),
@@ -49,7 +48,6 @@ if (class_exists('\MongoClient')) {
     );
     $application->add(
         new CoreExportCommand(
-            new \MongoClient($mongoCredentials['uri']),
             $mongoCredentials['db'],
             new Filesystem(),
             new JsonSerializer(),
@@ -58,7 +56,6 @@ if (class_exists('\MongoClient')) {
     );
     $application->add(
         new CorePurgeCommand(
-            new \MongoClient($mongoCredentials['uri']),
             $mongoCredentials['db']
         )
     );

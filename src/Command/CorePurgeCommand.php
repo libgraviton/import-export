@@ -24,11 +24,7 @@ use Zumba\Util\JsonSerializer;
  */
 class CorePurgeCommand extends Command
 {
-
-    /**
-     * @var \MongoClient mongoclient
-     */
-    private $mongoClient;
+    use CoreClientTrait;
 
     /**
      * @var string
@@ -36,14 +32,11 @@ class CorePurgeCommand extends Command
     private $databaseName;
 
     /**
-     * @param \MongoClient $mongoClient  mongoclient
-     * @param string       $databaseName database name
+     * @param string $databaseName database name
      */
     public function __construct(
-        \MongoClient $mongoClient,
         $databaseName
     ) {
-        $this->mongoClient = $mongoClient;
         $this->databaseName = $databaseName;
         parent::__construct();
     }
@@ -58,6 +51,12 @@ class CorePurgeCommand extends Command
         $this
             ->setName('graviton:core:purge')
             ->setDescription('Purges (removes!) all collections in the database given.')
+            ->addOption(
+                'mongodb',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'MongoDB connection URL.'
+            )
             ->addArgument(
                 'yes',
                 InputArgument::REQUIRED,
@@ -81,7 +80,7 @@ class CorePurgeCommand extends Command
             throw new \LogicException('You must pass "yes" as parameter to show that you know what you\'re doing');
         }
 
-        foreach ($this->mongoClient->{$this->databaseName}->listCollections() as $collection) {
+        foreach ($this->getClient($input)->{$this->databaseName}->listCollections() as $collection) {
             $collectionName = $collection->getName();
             $output->writeln("<info>Dropping collection <${collectionName}></info>");
             $collection->drop();
