@@ -30,7 +30,7 @@ class CorePurgeCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function testCalls()
     {
-        $clientMock = $this->getMockBuilder('\MongoClient')->getMock();
+        $clientMock = $this->getMockBuilder('\MongoClient')->disableOriginalConstructor()->getMock();
 
         $collection = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
         $collection->expects($this->once())->method('drop')->willReturn(true);
@@ -46,9 +46,9 @@ class CorePurgeCommandTest extends \PHPUnit_Framework_TestCase
         $clientMock->db = $dbMock;
 
         $sut = new CorePurgeCommand(
-            $clientMock,
             'db'
         );
+        $sut->setClient($clientMock);
 
         $app = new Application();
         $app->add($sut);

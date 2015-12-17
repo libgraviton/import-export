@@ -24,11 +24,7 @@ use Zumba\Util\JsonSerializer;
  */
 class CoreExportCommand extends Command
 {
-
-    /**
-     * @var \MongoClient mongoclient
-     */
-    private $mongoClient;
+    use CoreClientTrait;
 
     /**
      * @var string
@@ -51,20 +47,17 @@ class CoreExportCommand extends Command
     private $frontMatter;
 
     /**
-     * @param \MongoClient   $mongoClient  mongoclient
      * @param string         $databaseName database name
      * @param Filesystem     $fs           symfony filesystem
      * @param JsonSerializer $serializer   json serializer
      * @param FrontMatter    $frontMatter  front matter
      */
     public function __construct(
-        \MongoClient $mongoClient,
         $databaseName,
         Filesystem $fs,
         JsonSerializer $serializer,
         FrontMatter $frontMatter
     ) {
-        $this->mongoClient = $mongoClient;
         $this->databaseName = $databaseName;
         $this->fs = $fs;
         $this->serializer = $serializer;
@@ -117,10 +110,6 @@ class CoreExportCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        if ($input->getOption('mongodb')) {
-            $this->client = new \MongoClient($input->getOption('mongodb'));
-        };
-
         $destinationDir = $input->getArgument('destinationDir');
 
         // dbname override?
@@ -143,7 +132,7 @@ class CoreExportCommand extends Command
             $collectionNameFilter = '/^'.str_replace('*', '(.*)', $collectionNameFilter).'/i';
         }
 
-        foreach ($this->mongoClient->{$this->databaseName}->listCollections() as $collection) {
+        foreach ($this->getClient($input)->{$this->databaseName}->listCollections() as $collection) {
             if ($collectionNameFilter !== null && preg_match($collectionNameFilter, $collection->getName()) === 0) {
                 continue;
             }
