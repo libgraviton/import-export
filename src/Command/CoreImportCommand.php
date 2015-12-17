@@ -20,11 +20,7 @@ use Graviton\ImportExport\Util\JsonSerializer;
  */
 class CoreImportCommand extends ImportCommandAbstract
 {
-
-    /**
-     * @var \MongoClient
-     */
-    private $client;
+    use CoreClientTrait;
 
     /**
      * @var FrontMatter
@@ -42,21 +38,18 @@ class CoreImportCommand extends ImportCommandAbstract
     private $databaseName;
 
     /**
-     * @param \MongoClient   $client       symfony/finder instance
      * @param string         $databaseName database name
      * @param FrontMatter    $frontMatter  frontmatter parser
      * @param JsonSerializer $serializer   serializer
      * @param Finder         $finder       finder
      */
     public function __construct(
-        \MongoClient $client,
         $databaseName,
         FrontMatter $frontMatter,
         JsonSerializer $serializer,
         Finder $finder
     ) {
         parent::__construct($finder);
-        $this->client = $client;
         $this->databaseName = $databaseName;
         $this->frontMatter = $frontMatter;
         $this->serializer = $serializer;
@@ -96,23 +89,21 @@ class CoreImportCommand extends ImportCommandAbstract
      */
     protected function doImport(Finder $finder, InputInterface $input, OutputInterface $output)
     {
-        if ($input->getOption('mongodb')) {
-            $this->client = new \MongoClient($input->getOption('mongodb'));
-        };
         foreach ($finder as $file) {
-            $this->importResource($file, $output);
+            $this->importResource($file, $input, $output);
         }
     }
 
     /**
      * import a single file into a collection
      *
-     * @param File            $file   file
+     * @param SplFileInfo     $file   file
+     * @param InputInterface  $input  User input on console
      * @param OutputInterface $output Output of the command
      *
      * @return void
      */
-    private function importResource($file, $output)
+    private function importResource(\SplFileInfo $file, InputInterface $input, OutputInterface $output)
     {
         $doc = $this->frontMatter->parse($file->getContents());
         $origDoc = $this->serializer->unserialize($doc->getContent());
@@ -121,7 +112,7 @@ class CoreImportCommand extends ImportCommandAbstract
             $output->writeln("<error>Could not deserialize file <${file}></error>");
         } else {
             $collectionName = $doc->getData()['collection'];
-            $this->client->selectCollection($this->databaseName, $collectionName)->save($origDoc);
+            $this->getClient($input)->selectCollection($this->databaseName, $collectionName)->save($origDoc);
 
             $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
         }

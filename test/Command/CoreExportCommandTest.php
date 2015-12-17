@@ -42,7 +42,7 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $clientMock = $this->getMockBuilder('\MongoClient')->getMock();
+        $clientMock = $this->getMockBuilder('\MongoClient')->disableOriginalConstructor()->getMock();
 
         $collectionData = [
             [
@@ -76,12 +76,12 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
         $clientMock->db = $dbMock;
 
         $sut = new CoreExportCommand(
-            $clientMock,
             'db',
             new Filesystem(),
             new JsonSerializer(),
             new FrontMatter()
         );
+        $sut->setClient($clientMock);
 
         $app = new Application();
         $app->add($sut);
