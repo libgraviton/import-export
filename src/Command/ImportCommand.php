@@ -104,6 +104,13 @@ class ImportCommand extends ImportCommandAbstract
                 'http://localhost'
             )
             ->addOption(
+                'rewrite-to',
+                't',
+                InputOption::VALUE_OPTIONAL,
+                'String to use as the replacement value for the [REWRITE-HOST] string.',
+                '<host>'
+            )
+            ->addOption(
                 'sync-requests',
                 's',
                 InputOption::VALUE_NONE,
@@ -134,24 +141,35 @@ class ImportCommand extends ImportCommandAbstract
     {
         $host = $input->getArgument('host');
         $rewriteHost = $input->getOption('rewrite-host');
+        $rewriteTo = $input->getOption('rewrite-to');
+        if ($rewriteTo === $this->getDefinition()->getOption('rewrite-to')->getDefault()) {
+            $rewriteTo = $host;
+        }
         $sync = $input->getOption('sync-requests');
 
-        $this->importPaths($finder, $output, $host, $rewriteHost, $sync);
+        $this->importPaths($finder, $output, $host, $rewriteHost, $rewriteTo, $sync);
     }
 
     /**
      * @param Finder          $finder      finder primmed with files to import
      * @param OutputInterface $output      output interfac
      * @param string          $host        host to import into
-     * @param string          $rewriteHost string to replace with value from $host during loading
+     * @param string          $rewriteHost string to replace with value from $rewriteTo during loading
+     * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
      * @param boolean         $sync        send requests syncronously
      *
      * @return void
      *
      * @throws MissingTargetException
      */
-    protected function importPaths(Finder $finder, OutputInterface $output, $host, $rewriteHost, $sync = false)
-    {
+    protected function importPaths(
+        Finder $finder,
+        OutputInterface $output,
+        $host,
+        $rewriteHost,
+        $rewriteTo,
+        $sync = false
+    ) {
         $promises = [];
         foreach ($finder as $file) {
             $doc = $this->frontMatter->parse($file->getContents());
@@ -164,7 +182,16 @@ class ImportCommand extends ImportCommandAbstract
 
             $targetUrl = sprintf('%s%s', $host, $doc->getData()['target']);
 
-            $promises[] = $this->importResource($targetUrl, (string) $file, $output, $doc, $host, $rewriteHost, $sync);
+            $promises[] = $this->importResource(
+                $targetUrl,
+                (string) $file,
+                $output,
+                $doc,
+                $host,
+                $rewriteHost,
+                $rewriteTo,
+                $sync
+            );
         }
 
         try {
@@ -181,6 +208,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param Document        $doc         document to load
      * @param string          $host        host to import into
      * @param string          $rewriteHost string to replace with value from $host during loading
+     * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
      * @param boolean         $sync        send requests syncronously
      *
      * @return Promise\Promise|null
@@ -192,9 +220,10 @@ class ImportCommand extends ImportCommandAbstract
         Document $doc,
         $host,
         $rewriteHost,
+        $rewriteTo,
         $sync = false
     ) {
-        $content = str_replace($rewriteHost, $host, $doc->getContent());
+        $content = str_replace($rewriteHost, $rewriteTo, $doc->getContent());
 
         $successFunc = function (ResponseInterface $response) use ($output) {
             $output->writeln(
