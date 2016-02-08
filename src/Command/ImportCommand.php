@@ -314,7 +314,7 @@ class ImportCommand extends ImportCommandAbstract
                 );
             }
         } elseif (substr($file, -4) == '.yml') {
-            $data = $this->parser->parse($content, false, false, true);
+            $data = $this->parser->parse($content);
         } else {
             throw new UnknownFileTypeException($file);
         }
