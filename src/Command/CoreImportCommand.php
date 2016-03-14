@@ -111,10 +111,13 @@ class CoreImportCommand extends ImportCommandAbstract
         if (is_null($origDoc)) {
             $output->writeln("<error>Could not deserialize file <${file}></error>");
         } else {
-            $collectionName = $doc->getData()['collection'];
-            $this->getClient($input)->selectCollection($this->databaseName, $collectionName)->save($origDoc);
-
-            $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
+            try {
+                $collectionName = $doc->getData()['collection'];
+                $this->getClient($input)->selectCollection($this->databaseName, $collectionName)->save($origDoc);
+                $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
+            } catch (\Exception $e) {
+                $output->writeln("<error>Error in <${file}>: ".$e->getMessage()."</error>");
+            }
         }
     }
 }
