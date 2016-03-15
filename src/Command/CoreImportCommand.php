@@ -38,6 +38,11 @@ class CoreImportCommand extends ImportCommandAbstract
     private $databaseName;
 
     /**
+     * @var array
+     */
+    private $errorStack = [];
+
+    /**
      * @param string         $databaseName database name
      * @param FrontMatter    $frontMatter  frontmatter parser
      * @param JsonSerializer $serializer   serializer
@@ -92,6 +97,13 @@ class CoreImportCommand extends ImportCommandAbstract
         foreach ($finder as $file) {
             $this->importResource($file, $input, $output);
         }
+
+        if (!empty($this->errorStack)) {
+            $output->writeln('<error>Errors orcurred during load!</error>');
+            foreach ($this->errorStack as $errorMessage) {
+                $output->writeln($errorMessage);
+            }
+        }
     }
 
     /**
@@ -111,10 +123,15 @@ class CoreImportCommand extends ImportCommandAbstract
         if (is_null($origDoc)) {
             $output->writeln("<error>Could not deserialize file <${file}></error>");
         } else {
-            $collectionName = $doc->getData()['collection'];
-            $this->getClient($input)->selectCollection($this->databaseName, $collectionName)->save($origDoc);
-
-            $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
+            try {
+                $collectionName = $doc->getData()['collection'];
+                $this->getClient($input)->selectCollection($this->databaseName, $collectionName)->save($origDoc);
+                $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
+            } catch (\Exception $e) {
+                $errorMessage = "<error>Error in <${file}>: ".$e->getMessage()."</error>";
+                $output->writeln($errorMessage);
+                $this->errorStack[] = $errorMessage;
+            }
         }
     }
 }
