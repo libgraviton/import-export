@@ -91,47 +91,46 @@ class CorePurgeCommand extends Command
             throw new \LogicException('You must pass "yes" as parameter to show that you know what you\'re doing');
         }
 
-        if ($recordOrigin === null) {
-            $this->purgeCollections($input, $output);
-        } else {
-            $this->purgeResourcesByOrigin($input, $output, $recordOrigin);
+        foreach ($this->getClient($input)->{$this->databaseName}->listCollections() as $collection) {
+            if ($recordOrigin === null) {
+                $this->purgeCollection($output, $collection);
+            } else {
+                $this->purgeResourcesByOrigin($output, $recordOrigin, $collection);
+            }
         }
+
     }
 
     /**
      * purge all connections from a database
      *
-     * @param InputInterface  $input  User input on console
-     * @param OutputInterface $output Output of the command
+     * @param OutputInterface  $output     Output of the command
+     * @param \MongoCollection $collection Collection to purge
      *
      * @return void
      */
-    private function purgeCollections(InputInterface $input, OutputInterface $output)
+    private function purgeCollection(OutputInterface $output, \MongoCollection $collection)
     {
-        foreach ($this->getClient($input)->{$this->databaseName}->listCollections() as $collection) {
-            $collectionName = $collection->getName();
-            $output->writeln("<info>Dropping collection <${collectionName}></info>");
-            $collection->drop();
-        }
+        $collectionName = $collection->getName();
+        $output->writeln("<info>Dropping collection <${collectionName}></info>");
+        $collection->drop();
     }
 
     /**
      * purge all connections from a database
      *
-     * @param InputInterface  $input  User input on console
-     * @param OutputInterface $output Output of the command
-     * @param string          $origin Value of recordOrigin field to purge
+     * @param OutputInterface  $output     Output of the command
+     * @param \MongoCollection $collection Collection to purge
+     * @param string           $origin     Value of recordOrigin field to purge
      *
      * @return void
      */
-    private function purgeResourcesByOrigin(InputInterface $input, OutputInterface $output, $origin)
+    private function purgeResourcesByOrigin(OutputInterface $output, \MongoCollection $collection, $origin)
     {
-        foreach ($this->getClient($input)->{$this->databaseName}->listCollections() as $collection) {
-            $collectionName = $collection->getName();
-            $output->writeln(
-                "<info>Dropping resources with recordOrigin <${origin}> from collection <${collectionName}></info>"
-            );
-            $collection->remove(['recordOrigin' => $origin]);
-        }
+        $collectionName = $collection->getName();
+        $output->writeln(
+            "<info>Dropping resources with recordOrigin <${origin}> from collection <${collectionName}></info>"
+        );
+        $collection->remove(['recordOrigin' => $origin]);
     }
 }
