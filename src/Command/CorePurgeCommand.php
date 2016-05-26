@@ -50,12 +50,22 @@ class CorePurgeCommand extends Command
     {
         $this
             ->setName('graviton:core:purge')
-            ->setDescription('Purges (removes!) all collections in the database given.')
+            ->setDescription(
+                'Purges (removes!) all collections in a given database or only the resources '.
+                'that contain a specified recordOrigin value.'
+            )
             ->addOption(
                 'mongodb',
                 null,
                 InputOption::VALUE_REQUIRED,
                 'MongoDB connection URL.'
+            )
+            ->addOption(
+                'recordOrigin',
+                null,
+                InputOption::VALUE_OPTIONAL,
+                'Value of recordOrigin field of values to purge. '.
+                'Passing this makes the command only remove value from a given recordOrigin'
             )
             ->addArgument(
                 'yes',
@@ -75,15 +85,52 @@ class CorePurgeCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $isSure = $input->getArgument('yes');
+        $recordOrigin = $input->getOption('recordOrigin');
 
         if ($isSure != 'yes') {
             throw new \LogicException('You must pass "yes" as parameter to show that you know what you\'re doing');
         }
 
         foreach ($this->getClient($input)->{$this->databaseName}->listCollections() as $collection) {
-            $collectionName = $collection->getName();
-            $output->writeln("<info>Dropping collection <${collectionName}></info>");
-            $collection->drop();
+            if ($recordOrigin === null) {
+                $this->purgeCollection($output, $collection);
+            } else {
+                $this->purgeResourcesByOrigin($output, $recordOrigin, $collection);
+            }
         }
+
+    }
+
+    /**
+     * purge all connections from a database
+     *
+     * @param OutputInterface  $output     Output of the command
+     * @param \MongoCollection $collection Collection to purge
+     *
+     * @return void
+     */
+    private function purgeCollection(OutputInterface $output, \MongoCollection $collection)
+    {
+        $collectionName = $collection->getName();
+        $output->writeln("<info>Dropping collection <${collectionName}></info>");
+        $collection->drop();
+    }
+
+    /**
+     * purge all connections from a database
+     *
+     * @param OutputInterface  $output     Output of the command
+     * @param \MongoCollection $collection Collection to purge
+     * @param string           $origin     Value of recordOrigin field to purge
+     *
+     * @return void
+     */
+    private function purgeResourcesByOrigin(OutputInterface $output, \MongoCollection $collection, $origin)
+    {
+        $collectionName = $collection->getName();
+        $output->writeln(
+            "<info>Dropping resources with recordOrigin <${origin}> from collection <${collectionName}></info>"
+        );
+        $collection->remove(['recordOrigin' => $origin]);
     }
 }
