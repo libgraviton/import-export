@@ -12,6 +12,7 @@ namespace Graviton\ImportExport\Command;
 use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
+use Graviton\ImportExport\Service\HttpClient;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -20,7 +21,6 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
-use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\BadResponseException;
@@ -36,7 +36,7 @@ use Psr\Http\Message\ResponseInterface;
 class ImportCommand extends ImportCommandAbstract
 {
     /**
-     * @var Client
+     * @var HttpClient
      */
     private $client;
 
@@ -61,7 +61,7 @@ class ImportCommand extends ImportCommandAbstract
     private $dumper;
 
     /**
-     * @param Client      $client      guzzle http client
+     * @param HttpClient  $client      Grv HttpClient guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
      * @param Parser      $parser      yaml/json parser
@@ -69,7 +69,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param Dumper      $dumper      dumper for outputing responses
      */
     public function __construct(
-        Client $client,
+        HttpClient $client,
         Finder $finder,
         FrontMatter $frontMatter,
         Parser $parser,
@@ -265,7 +265,8 @@ class ImportCommand extends ImportCommandAbstract
                 'PUT',
                 $targetUrl,
                 [
-                    'json' => $this->parseContent($content, $file)
+                    'json' => $this->parseContent($content, $file),
+                    'origin' => $file
                 ]
             );
             $promise->then($successFunc, $errFunc);
@@ -279,6 +280,7 @@ class ImportCommand extends ImportCommandAbstract
                             $targetUrl,
                             [
                                 'json' => $this->parseContent($content, $file),
+                                'origin' => $file
                             ]
                         )
                     )
