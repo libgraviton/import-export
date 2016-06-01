@@ -18,6 +18,7 @@ use GuzzleHttp\Promise;
  */
 class HttpClient extends Client
 {
+    /** @var string */
     private $url;
 
     /**
@@ -33,7 +34,6 @@ class HttpClient extends Client
     {
         $this->url = $uri;
         $options = $this->checkFileUploadRequest($options);
-
 
         return parent::requestAsync($method, $this->url, $options);
     }
@@ -67,15 +67,13 @@ class HttpClient extends Client
             return $options;
         }
         unset($options['json']['file']);
-        unset($options['json']['id']);
 
         // We send the data in URL
         $this->url .= '?metadata='.json_encode($options['json']);
+        unset($options['json']);
 
         // We send file only
-        $options = [
-            'body' => fopen($fileName, 'r')
-        ];
+        $options['body'] = fopen($fileName, 'r');
 
         return $options;
 
