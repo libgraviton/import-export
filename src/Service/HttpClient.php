@@ -6,6 +6,7 @@ namespace Graviton\ImportExport\Service;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Psr7;
+use GuzzleHttp\Promise;
 
 /**
  * Class HttpClient
@@ -17,6 +18,8 @@ use GuzzleHttp\Psr7;
  */
 class HttpClient extends Client
 {
+    private $url;
+
     /**
      * Parse Body and if File is found it will find file and send it
      *
@@ -28,25 +31,13 @@ class HttpClient extends Client
      */
     public function requestAsync($method, $uri = null, array $options = [])
     {
+        $this->url = $uri;
         $options = $this->checkFileUploadRequest($options);
 
-        return parent::requestAsync($method, $uri, $options);
-    }
 
-    /**
-     * Parse Body and if File is found it will find file and send it
-     *
-     * @param string $method  Request method to be used
-     * @param string $uri     Url to where to send data
-     * @param array  $options Config params
-     * @return mixed
-     */
-    public function request($method, $uri = null, array $options = [])
-    {
-        $options = $this->checkFileUploadRequest($options);
-        $options[RequestOptions::SYNCHRONOUS] = true;
-        return $this->requestAsync($method, $uri, $options)->wait();
+        return parent::requestAsync($method, $this->url, $options);
     }
+    
 
     /**
      * @param array $options Curl data options
@@ -71,13 +62,20 @@ class HttpClient extends Client
 
         // Find file
         $fileName = preg_replace('/([^\/]+$)/', substr($options['json']['file'], 1), $originFileName);
+        $fileName = str_replace('//', '/', $fileName);
         if (!file_exists($fileName)) {
             return $options;
         }
-        
+        unset($options['json']['file']);
+        unset($options['json']['id']);
+
+        // We send the data in URL
+        $this->url .= '?metadata='.json_encode($options['json']);
+
         // We send file only
-        $options = [];
-        $options['body'] = fopen(str_replace('//', '/', $fileName), 'r');
+        $options = [
+            'body' => fopen($fileName, 'r')
+        ];
 
         return $options;
 
