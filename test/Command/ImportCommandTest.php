@@ -219,10 +219,12 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ->with(
                 $this->equalTo('PUT'),
                 $this->equalTo('http://example.com/core/module/test'),
-                $this->equalTo([
-                    'json' => 'http://example.com/core/app/test',
-                    'origin' => __DIR__.'/fixtures/set-01/test-4.json'
-                ])
+                $this->equalTo(
+                    [
+                        'json' => 'http://example.com/core/app/test',
+                        'origin' => __DIR__.'/fixtures/set-01/test-4.json'
+                    ]
+                )
             )
             ->will($this->returnValue($promiseMock));
 
