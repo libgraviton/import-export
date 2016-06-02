@@ -341,7 +341,7 @@ class ImportCommand extends ImportCommandAbstract
         }
 
         // Find file
-        $fileName = preg_replace('/([^\/]+$)/', $documentData['file'], $originFile);
+        $fileName = dirname($originFile) . DIRECTORY_SEPARATOR . $documentData['file'];
         $fileName = str_replace('//', '/', $fileName);
         if (!file_exists($fileName)) {
             return false;
