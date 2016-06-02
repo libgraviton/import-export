@@ -50,6 +50,7 @@ class HttpClient extends Client
         if (!$originFileName) {
             return $options;
         }
+        
         // Remove un-used param
         unset($options['origin']);
 
@@ -66,10 +67,14 @@ class HttpClient extends Client
         if (!file_exists($fileName)) {
             return $options;
         }
+
+        // File should only be sent as so.
         unset($options['json']['file']);
 
         // We send the data in URL
-        $this->url .= '?metadata='.json_encode($options['json']);
+        $options['query'] = ['metadata' =>  json_encode($options['json'])];
+
+        // Guzzle modify header if we send json.
         unset($options['json']);
 
         // We send file only
