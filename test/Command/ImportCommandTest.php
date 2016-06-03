@@ -23,6 +23,11 @@ use Webuni\FrontMatter\FrontMatter;
 class ImportCommandTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * String Http Client Class.
+     */
+    const CLIENT = 'Graviton\ImportExport\Service\HttpClient';
+
+    /**
      * @dataProvider uploadFileProvider
      *
      * @param string $host import target host with protocol
@@ -33,7 +38,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function testUploadFile($host, $file, $path)
     {
-        $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
+        $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
 
         $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
 
@@ -84,6 +89,11 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 __DIR__ . '/fixtures/set-01/test-2.json',
                 '/core/app/test',
             ],
+            'basic valid image file' => [
+                'http://localhost',
+                __DIR__ . '/fixtures/file',
+                '/core/app/test',
+            ],
         ];
     }
 
@@ -98,7 +108,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function testErrorFile($host, $file, $errors = [])
     {
-        $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
+        $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
 
         $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
 
@@ -191,7 +201,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function testRewrite()
     {
-        $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
+        $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
 
         $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
 
@@ -200,7 +210,12 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ->with(
                 $this->equalTo('PUT'),
                 $this->equalTo('http://example.com/core/module/test'),
-                $this->equalTo(['json' => 'http://example.com/core/app/test'])
+                $this->equalTo(
+                    [
+                        'json' => 'http://example.com/core/app/test',
+                        'upload' => false
+                    ]
+                )
             )
             ->will($this->returnValue($promiseMock));
 

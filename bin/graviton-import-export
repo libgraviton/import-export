@@ -17,7 +17,7 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
-use GuzzleHttp\Client;
+use Graviton\ImportExport\Service\HttpClient;
 use Webuni\FrontMatter\FrontMatter;
 use Symfony\Component\Filesystem\Filesystem;
 use Graviton\ImportExport\Util\JsonSerializer;
@@ -25,7 +25,7 @@ use Graviton\ImportExport\Util\JsonSerializer;
 $application = new Application();
 $application->add(
     new ImportCommand(
-        new Client(),
+        new HttpClient(),
         new Finder(),
         new FrontMatter(),
         new Parser(),
