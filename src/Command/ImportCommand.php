@@ -271,7 +271,7 @@ class ImportCommand extends ImportCommandAbstract
         };
 
         $client = $this->client;
-        if ($uploadFile) {
+        if ($uploadFile !== false) {
             $client = $this->filesender;
         }
 
@@ -344,7 +344,7 @@ class ImportCommand extends ImportCommandAbstract
      *
      * @param Document $doc        Data source for import data
      * @param string   $originFile Original full filename used toimport
-     * @return bool|mixed
+     * @return false|string
      */
     private function validateUploadFile(Document $doc, $originFile)
     {
