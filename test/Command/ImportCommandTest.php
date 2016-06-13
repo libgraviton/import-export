@@ -36,13 +36,13 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
-        $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
+        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
 
         $clientMock
             ->method('requestAsync')
             ->will($this->returnValue($promiseMock));
 
-        $responseMock = $this->getMock('Psr\Http\Message\ResponseInterface');
+        $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
             ->method('getHeader')
@@ -116,19 +116,19 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
-        $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
+        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
 
         $clientMock
             ->method('requestAsync')
             ->will($this->returnValue($promiseMock));
 
-        $responseMock = $this->getMock('Psr\Http\Message\ResponseInterface');
+        $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
             ->method('getBody')
             ->willReturn(json_encode((object) ["message" => "invalid"]));
 
-        $requestMock = $this->getMock('Psr\Http\Message\RequestInterface');
+        $requestMock = $this->createMock('Psr\Http\Message\RequestInterface');
         $requestMock
             ->method('getUri')
             ->willReturn($host . '/core/app/test');
@@ -210,7 +210,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
-        $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
+        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
 
         $clientMock
             ->method('requestAsync')
@@ -226,7 +226,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             )
             ->will($this->returnValue($promiseMock));
 
-        $responseMock = $this->getMock('Psr\Http\Message\ResponseInterface');
+        $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
             ->method('getHeader')

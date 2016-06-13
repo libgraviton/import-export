@@ -23,7 +23,7 @@
         "ext-iconv": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.8.6",
+        "phpunit/phpunit": "~5.2",
         "squizlabs/php_codesniffer": "~2.2",
         "libgraviton/codesniffer": "~1.3",
         "kherge/box": "^2.5"
