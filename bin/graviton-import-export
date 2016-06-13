@@ -12,25 +12,29 @@ use Graviton\ImportExport\Command\ImportCommand;
 use Graviton\ImportExport\Command\CoreExportCommand;
 use Graviton\ImportExport\Command\CoreImportCommand;
 use Graviton\ImportExport\Command\CorePurgeCommand;
+use Graviton\ImportExport\Service\FileSender;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
-use Graviton\ImportExport\Service\HttpClient;
+use GuzzleHttp\Client;
 use Webuni\FrontMatter\FrontMatter;
 use Symfony\Component\Filesystem\Filesystem;
 use Graviton\ImportExport\Util\JsonSerializer;
 
+$client = new Client();
+
 $application = new Application();
 $application->add(
     new ImportCommand(
-        new HttpClient(),
+        $client,
         new Finder(),
         new FrontMatter(),
         new Parser(),
         new VarCloner(),
-        new Dumper()
+        new Dumper(),
+        new FileSender($client)
     )
 );
 

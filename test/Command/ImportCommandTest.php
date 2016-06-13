@@ -6,6 +6,7 @@
 namespace Graviton\ImportExport\Tests\Command;
 
 use Graviton\ImportExport\Command\ImportCommand;
+use Graviton\ImportExport\Service\FileSender;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -23,11 +24,6 @@ use Webuni\FrontMatter\FrontMatter;
 class ImportCommandTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * String Http Client Class.
-     */
-    const CLIENT = 'Graviton\ImportExport\Service\HttpClient';
-
-    /**
      * @dataProvider uploadFileProvider
      *
      * @param string $host import target host with protocol
@@ -38,7 +34,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function testUploadFile($host, $file, $path)
     {
-        $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
+        $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
         $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
 
@@ -69,7 +65,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
-            new Dumper()
+            new Dumper(),
+            new FileSender($clientMock)
         );
 
         $cmdTester = $this->getTester($sut, $file);
@@ -89,6 +86,15 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 __DIR__ . '/fixtures/set-01/test-2.json',
                 '/core/app/test',
             ],
+        ];
+    }
+
+    /**
+     * @return array[]
+     */
+    public function uploadImageFileProvider()
+    {
+        return [
             'basic valid image file' => [
                 'http://localhost',
                 __DIR__ . '/fixtures/file',
@@ -108,7 +114,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function testErrorFile($host, $file, $errors = [])
     {
-        $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
+        $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
         $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
 
@@ -155,7 +161,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
-            new Dumper()
+            new Dumper(),
+            new FileSender($clientMock)
         );
 
         $cmdTester = $this->getTester($sut, $file);
@@ -201,7 +208,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function testRewrite()
     {
-        $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
+        $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
         $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
 
@@ -242,7 +249,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
-            new Dumper()
+            new Dumper(),
+            new FileSender($clientMock)
         );
 
         $cmdTester = $this->getTester(

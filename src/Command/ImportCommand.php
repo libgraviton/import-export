@@ -12,7 +12,7 @@ namespace Graviton\ImportExport\Command;
 use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
-use Graviton\ImportExport\Service\HttpClient;
+use Graviton\ImportExport\Service\FileSender;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,6 +21,7 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
+use GuzzleHttp\Client;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\BadResponseException;
@@ -36,7 +37,7 @@ use Psr\Http\Message\ResponseInterface;
 class ImportCommand extends ImportCommandAbstract
 {
     /**
-     * @var HttpClient
+     * @var Client
      */
     private $client;
 
@@ -61,20 +62,27 @@ class ImportCommand extends ImportCommandAbstract
     private $dumper;
 
     /**
-     * @param HttpClient  $client      Grv HttpClient guzzle http client
+     * @var FileSender
+     */
+    private $filesender;
+
+    /**
+     * @param Client      $client      guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
      * @param Parser      $parser      yaml/json parser
      * @param VarCloner   $cloner      var cloner for dumping reponses
      * @param Dumper      $dumper      dumper for outputing responses
+     * @param FileSender  $filesender  helper service for uploading files
      */
     public function __construct(
-        HttpClient $client,
+        Client $client,
         Finder $finder,
         FrontMatter $frontMatter,
         Parser $parser,
         VarCloner $cloner,
-        Dumper $dumper
+        Dumper $dumper,
+        FileSender $filesender
     ) {
         parent::__construct(
             $finder
@@ -84,6 +92,7 @@ class ImportCommand extends ImportCommandAbstract
         $this->parser = $parser;
         $this->cloner = $cloner;
         $this->dumper = $dumper;
+        $this->filesender = $filesender;
     }
 
     /**
@@ -261,8 +270,13 @@ class ImportCommand extends ImportCommandAbstract
             }
         };
 
+        $client = $this->client;
+        if ($uploadFile) {
+            $client = $this->filesender;
+        }
+
         if ($sync === false) {
-            $promise = $this->client->requestAsync(
+            $promise = $client->requestAsync(
                 'PUT',
                 $targetUrl,
                 [
@@ -276,7 +290,7 @@ class ImportCommand extends ImportCommandAbstract
             try {
                 $promise->resolve(
                     $successFunc(
-                        $this->client->request(
+                        $client->request(
                             'PUT',
                             $targetUrl,
                             [
