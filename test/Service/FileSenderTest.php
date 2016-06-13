@@ -61,7 +61,7 @@ class FileSenderTest extends \PHPUnit_Framework_TestCase
         $method = 'PUT';
         $uri = 'http://localhost/file/example';
         $options = [
-            'upload' => ''    
+            'upload' => ''
         ];
         $expectedOptions = [];
 
@@ -86,6 +86,7 @@ class FileSenderTest extends \PHPUnit_Framework_TestCase
      * @dataProvider requestTypeProvider
      * @covers Graviton\ImportExport\Service\FileSender
      *
+     * @param string $type type of request to test
      * @return void
      */
     public function testExceptsToBeingCalledWithoutJsonDataInUploadCase($type)
@@ -105,7 +106,7 @@ class FileSenderTest extends \PHPUnit_Framework_TestCase
         $sut = new FileSender(
             $clientMock
         );
-        $sut->$type($method, $uri, $options);;
+        $sut->$type($method, $uri, $options);
     }
 
 
