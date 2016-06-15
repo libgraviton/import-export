@@ -86,15 +86,6 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 __DIR__ . '/fixtures/set-01/test-2.json',
                 '/core/app/test',
             ],
-        ];
-    }
-
-    /**
-     * @return array[]
-     */
-    public function uploadImageFileProvider()
-    {
-        return [
             'basic valid image file' => [
                 'http://localhost',
                 __DIR__ . '/fixtures/file',
