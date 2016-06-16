@@ -98,7 +98,7 @@ class FileSender
         unset($options['json']);
 
         // We send file only
-        $options['body'] = file_get_contents($fileName);
+        $options['body'] = fopen($fileName, 'r');
 
         return $options;
     }

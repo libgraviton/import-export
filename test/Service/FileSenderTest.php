@@ -130,8 +130,7 @@ class FileSenderTest extends \PHPUnit_Framework_TestCase
         $expectedOptions = [
             'query' => [
                 'metadata' => '{}'
-            ],
-            'body' => file_get_contents(__DIR__ . '/fixtures/file.txt')
+            ]
         ];
 
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
@@ -140,7 +139,19 @@ class FileSenderTest extends \PHPUnit_Framework_TestCase
 
         $clientMock
             ->method($type)
-            ->with($method, $uri, $expectedOptions)
+            ->with(
+                $method,
+                $uri,
+                $this->callback(
+                    function ($options) use ($expectedOptions) {
+                        $this->assertArrayHasKey('body', $options);
+                        $this->assertInternalType('resource', $options['body']);
+                        unset($options['body']);
+                        $this->assertEquals($options, $expectedOptions);
+                        return true;
+                    }
+                )
+            )
             ->will($this->returnValue($promiseMock));
 
         $sut = new FileSender(
