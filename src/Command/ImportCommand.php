@@ -12,6 +12,7 @@ namespace Graviton\ImportExport\Command;
 use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
+use Graviton\ImportExport\Service\FileSender;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -61,12 +62,18 @@ class ImportCommand extends ImportCommandAbstract
     private $dumper;
 
     /**
+     * @var FileSender
+     */
+    private $filesender;
+
+    /**
      * @param Client      $client      guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
      * @param Parser      $parser      yaml/json parser
      * @param VarCloner   $cloner      var cloner for dumping reponses
      * @param Dumper      $dumper      dumper for outputing responses
+     * @param FileSender  $filesender  helper service for uploading files
      */
     public function __construct(
         Client $client,
@@ -74,7 +81,8 @@ class ImportCommand extends ImportCommandAbstract
         FrontMatter $frontMatter,
         Parser $parser,
         VarCloner $cloner,
-        Dumper $dumper
+        Dumper $dumper,
+        FileSender $filesender
     ) {
         parent::__construct(
             $finder
@@ -84,6 +92,7 @@ class ImportCommand extends ImportCommandAbstract
         $this->parser = $parser;
         $this->cloner = $cloner;
         $this->dumper = $dumper;
+        $this->filesender = $filesender;
     }
 
     /**
@@ -224,6 +233,7 @@ class ImportCommand extends ImportCommandAbstract
         $sync = false
     ) {
         $content = str_replace($rewriteHost, $rewriteTo, $doc->getContent());
+        $uploadFile = $this->validateUploadFile($doc, $file);
 
         $successFunc = function (ResponseInterface $response) use ($output) {
             $output->writeln(
@@ -260,12 +270,18 @@ class ImportCommand extends ImportCommandAbstract
             }
         };
 
+        $client = $this->client;
+        if ($uploadFile !== false) {
+            $client = $this->filesender;
+        }
+
         if ($sync === false) {
-            $promise = $this->client->requestAsync(
+            $promise = $client->requestAsync(
                 'PUT',
                 $targetUrl,
                 [
-                    'json' => $this->parseContent($content, $file)
+                    'json' => $this->parseContent($content, $file),
+                    'upload' => $uploadFile
                 ]
             );
             $promise->then($successFunc, $errFunc);
@@ -274,11 +290,12 @@ class ImportCommand extends ImportCommandAbstract
             try {
                 $promise->resolve(
                     $successFunc(
-                        $this->client->request(
+                        $client->request(
                             'PUT',
                             $targetUrl,
                             [
                                 'json' => $this->parseContent($content, $file),
+                                'upload' => $uploadFile
                             ]
                         )
                     )
@@ -320,5 +337,30 @@ class ImportCommand extends ImportCommandAbstract
         }
 
         return $data;
+    }
+
+    /**
+     * Checks if file exists and return qualified fileName location
+     *
+     * @param Document $doc        Data source for import data
+     * @param string   $originFile Original full filename used toimport
+     * @return false|string
+     */
+    private function validateUploadFile(Document $doc, $originFile)
+    {
+        $documentData = $doc->getData();
+
+        if (!array_key_exists('file', $documentData)) {
+            return false;
+        }
+
+        // Find file
+        $fileName = dirname($originFile) . DIRECTORY_SEPARATOR . $documentData['file'];
+        $fileName = str_replace('//', '/', $fileName);
+        if (!file_exists($fileName)) {
+            return false;
+        }
+
+        return $fileName;
     }
 }

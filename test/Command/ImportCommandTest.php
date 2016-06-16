@@ -6,6 +6,7 @@
 namespace Graviton\ImportExport\Tests\Command;
 
 use Graviton\ImportExport\Command\ImportCommand;
+use Graviton\ImportExport\Service\FileSender;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,13 +36,13 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
-        $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
+        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
 
         $clientMock
             ->method('requestAsync')
             ->will($this->returnValue($promiseMock));
 
-        $responseMock = $this->getMock('Psr\Http\Message\ResponseInterface');
+        $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
             ->method('getHeader')
@@ -64,7 +65,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
-            new Dumper()
+            new Dumper(),
+            new FileSender($clientMock)
         );
 
         $cmdTester = $this->getTester($sut, $file);
@@ -84,6 +86,11 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 __DIR__ . '/fixtures/set-01/test-2.json',
                 '/core/app/test',
             ],
+            'basic valid image file' => [
+                'http://localhost',
+                __DIR__ . '/fixtures/file',
+                '/core/app/test',
+            ],
         ];
     }
 
@@ -100,19 +107,19 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
-        $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
+        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
 
         $clientMock
             ->method('requestAsync')
             ->will($this->returnValue($promiseMock));
 
-        $responseMock = $this->getMock('Psr\Http\Message\ResponseInterface');
+        $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
             ->method('getBody')
             ->willReturn(json_encode((object) ["message" => "invalid"]));
 
-        $requestMock = $this->getMock('Psr\Http\Message\RequestInterface');
+        $requestMock = $this->createMock('Psr\Http\Message\RequestInterface');
         $requestMock
             ->method('getUri')
             ->willReturn($host . '/core/app/test');
@@ -145,7 +152,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
-            new Dumper()
+            new Dumper(),
+            new FileSender($clientMock)
         );
 
         $cmdTester = $this->getTester($sut, $file);
@@ -193,18 +201,23 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder('GuzzleHttp\Client')->getMock();
 
-        $promiseMock = $this->getMock('GuzzleHttp\Promise\Promise');
+        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
 
         $clientMock
             ->method('requestAsync')
             ->with(
                 $this->equalTo('PUT'),
                 $this->equalTo('http://example.com/core/module/test'),
-                $this->equalTo(['json' => 'http://example.com/core/app/test'])
+                $this->equalTo(
+                    [
+                        'json' => 'http://example.com/core/app/test',
+                        'upload' => false
+                    ]
+                )
             )
             ->will($this->returnValue($promiseMock));
 
-        $responseMock = $this->getMock('Psr\Http\Message\ResponseInterface');
+        $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
             ->method('getHeader')
@@ -227,7 +240,8 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             new FrontMatter(),
             new Parser(),
             new VarCloner(),
-            new Dumper()
+            new Dumper(),
+            new FileSender($clientMock)
         );
 
         $cmdTester = $this->getTester(
