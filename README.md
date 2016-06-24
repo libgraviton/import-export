@@ -67,6 +67,23 @@ target: /core/app/test
 { "id": "test", "name": { "en": "Test" }, "showInMenu": true, "order": 100 }
 ```
 
+### Importing Files to /file/
+
+* Files cannot be overwritten, an attempt to update a file-dataset with the tool will throw an error.
+
+Example for a File-Upload, i.e. swisscom.png with additional link to be added to the file dataset:
+```yml
+--- 
+target: /file/swisscom 
+file: swisscom.png 
+--- 
+id: swisscom 
+links: 
+    - 
+      type: "accountType" 
+      $ref: "http://localhost/entity/code/accountType-1" 
+```yml
+
 ## Building Docker Runtime
 
 ```bash
