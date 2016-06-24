@@ -82,7 +82,7 @@ links:
     - 
       type: "accountType" 
       $ref: "http://localhost/entity/code/accountType-1" 
-```yml
+```
 
 ## Building Docker Runtime
 
