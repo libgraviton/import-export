@@ -11,6 +11,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
@@ -47,14 +48,27 @@ abstract class ImportCommandAbstract extends Command
         $files = $input->getArgument('file');
         $finder = $this->finder->files();
 
+        /**
+         * @param SplFileInfo $file
+         * @return bool
+         */
+        $filter = function (SplFileInfo $file) {
+            if (!in_array($file->getExtension(), ['yml','json']) || $file->isDir()) {
+                return false;
+            }
+            return true;
+        };
+
         foreach ($files as $file) {
             if (is_file($file)) {
-                $finder = $finder->in(dirname($file))->name(basename($file));
+                $finder->in(dirname($file))->name(basename($file));
             } else {
-                $finder = $finder->in($file);
+                $finder->in($file);
             }
         }
 
+        $finder->ignoreDotFiles(true)->filter($filter);
+        
         try {
             $this->doImport($finder, $input, $output);
         } catch (MissingTargetException $e) {
