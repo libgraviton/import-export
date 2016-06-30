@@ -13,6 +13,7 @@ use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Graviton\ImportExport\Service\HttpClient;
+use GuzzleHttp\Exception\ClientException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,7 +24,7 @@ use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
 use GuzzleHttp\Promise;
 use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Exception\BadResponseException;
+use Symfony\Component\Finder\SplFileInfo;
 use Webuni\FrontMatter\FrontMatter;
 use Webuni\FrontMatter\Document;
 use Psr\Http\Message\ResponseInterface;
@@ -59,6 +60,12 @@ class ImportCommand extends ImportCommandAbstract
      * @var Dumper
      */
     private $dumper;
+
+    /**
+     * Count of errors
+     * @var array
+     */
+    private $errors = [];
 
     /**
      * @param HttpClient  $client      Grv HttpClient guzzle http client
@@ -148,6 +155,22 @@ class ImportCommand extends ImportCommandAbstract
         $sync = $input->getOption('sync-requests');
 
         $this->importPaths($finder, $output, $host, $rewriteHost, $rewriteTo, $sync);
+
+        // Error exit
+        if (empty($this->errors)) {
+            // No errors
+            $output->writeln("\n".'<info>No errors</info>');
+            $output->writeln('0');
+            exit(0);
+        } else {
+            // Yes, there was errors
+            $output->writeln("\n".'<info>There was errors: '.count($this->errors).'</info>');
+            foreach ($this->errors as $file => $error) {
+                $output->writeln("<error>{$file}: {$error}</error>");
+            }
+            $output->writeln('1');
+            exit(1);
+        }
     }
 
     /**
@@ -171,6 +194,7 @@ class ImportCommand extends ImportCommandAbstract
         $sync = false
     ) {
         $promises = [];
+        /** @var SplFileInfo $file */
         foreach ($finder as $file) {
             $doc = $this->frontMatter->parse($file->getContents());
 
@@ -187,7 +211,6 @@ class ImportCommand extends ImportCommandAbstract
                 (string) $file,
                 $output,
                 $doc,
-                $host,
                 $rewriteHost,
                 $rewriteTo,
                 $sync
@@ -196,7 +219,7 @@ class ImportCommand extends ImportCommandAbstract
 
         try {
             Promise\unwrap($promises);
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
+        } catch (ClientException $e) {
             // silently ignored since we already output an error when the promise fails
         }
     }
@@ -206,7 +229,6 @@ class ImportCommand extends ImportCommandAbstract
      * @param string          $file        path to file being loaded
      * @param OutputInterface $output      output of the command
      * @param Document        $doc         document to load
-     * @param string          $host        host to import into
      * @param string          $rewriteHost string to replace with value from $host during loading
      * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
      * @param boolean         $sync        send requests syncronously
@@ -218,7 +240,6 @@ class ImportCommand extends ImportCommandAbstract
         $file,
         OutputInterface $output,
         Document $doc,
-        $host,
         $rewriteHost,
         $rewriteTo,
         $sync = false
@@ -233,6 +254,7 @@ class ImportCommand extends ImportCommandAbstract
         };
 
         $errFunc = function (RequestException $e) use ($output, $file) {
+            $this->errors[$file] = $e->getMessage();
             $output->writeln(
                 '<error>' . str_pad(
                     sprintf(
@@ -261,37 +283,42 @@ class ImportCommand extends ImportCommandAbstract
             }
         };
 
-        if ($sync === false) {
-            $promise = $this->client->requestAsync(
-                'PUT',
-                $targetUrl,
-                [
-                    'json' => $this->parseContent($content, $file),
-                    'upload' => $uploadFile
-                ]
-            );
-            $promise->then($successFunc, $errFunc);
-        } else {
-            $promise = new Promise\Promise;
-            try {
-                $promise->resolve(
-                    $successFunc(
-                        $this->client->request(
-                            'PUT',
-                            $targetUrl,
-                            [
-                                'json' => $this->parseContent($content, $file),
-                                'upload' => $uploadFile
-                            ]
-                        )
-                    )
-                );
-            } catch (BadResponseException $e) {
-                $promise->resolve(
-                    $errFunc($e)
-                );
-            }
+        $data = [
+            'json'   => $this->parseContent($content, $file),
+            'upload' => $uploadFile
+        ];
+        $promise = $this->client->requestAsync(
+            'PUT',
+            $targetUrl,
+            $data
+        );
+
+        // If there is a file to be uploaded, and it exists in remote, we delete it first.
+        $fileRepeatFunc = false;
+        if ($uploadFile) {
+            $fileRepeatFunc = function () use ($targetUrl, $successFunc, $errFunc, $output, $file, $data) {
+                unset($this->errors[$file]);
+                $output->writeln('<info>File deleting: '.$targetUrl.'</info>');
+                $deleteRequest = $this->client->requestAsync('DELETE', $targetUrl);
+                $insert = function () use ($targetUrl, $successFunc, $errFunc, $output, $data) {
+                    $output->writeln('<info>File inserting: '.$targetUrl.'</info>');
+                    $promiseInsert = $this->client->requestAsync('PUT', $targetUrl, $data);
+                    $promiseInsert->then($successFunc, $errFunc);
+                };
+                $deleteRequest
+                    ->then($insert, $errFunc)->wait();
+            };
         }
+
+        $promiseError = $fileRepeatFunc ? $fileRepeatFunc : $errFunc;
+        if ($sync) {
+            $promise->then($successFunc, $promiseError)->wait();
+        } else {
+            $promise->then($successFunc, $promiseError);
+        }
+
+
+
         return $promise;
     }
 
@@ -302,6 +329,8 @@ class ImportCommand extends ImportCommandAbstract
      * @param string $file    full path to file
      *
      * @return mixed
+     * @throws UnknownFileTypeException
+     * @throws JsonParseException
      */
     protected function parseContent($content, $file)
     {
