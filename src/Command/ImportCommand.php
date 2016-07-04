@@ -294,6 +294,7 @@ class ImportCommand extends ImportCommandAbstract
         );
 
         // If there is a file to be uploaded, and it exists in remote, we delete it first.
+        // TODO This part, $uploadFile, promise should be removed once Graviton/File service is resolved in new Story. 
         $fileRepeatFunc = false;
         if ($uploadFile) {
             $fileRepeatFunc = function () use ($targetUrl, $successFunc, $errFunc, $output, $file, $data) {
