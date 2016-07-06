@@ -54,15 +54,22 @@ class HttpClient extends Client
         if (!$fileName) {
             return $options;
         }
-
-        // We send the data in URL
-        $options['query'] = ['metadata' =>  json_encode($options['json'])];
+        
+        // We create a MultiPart form, Graviton decode the "metadata" value.
+        $options['multipart'] = [
+            [
+                'name'     => 'metadata',
+                'contents' => json_encode($options['json'])
+            ],
+            [
+                'name'     => 'upload',
+                'contents' => fopen($fileName, 'r'),
+                'filename' => basename($fileName)
+            ]
+        ];
 
         // Guzzle modify header if we send json.
         unset($options['json']);
-
-        // We send file only
-        $options['body'] = fopen($fileName, 'r');
 
         return $options;
 
