@@ -115,5 +115,6 @@ class CoreImportCommandTest extends \PHPUnit_Framework_TestCase
             'Could not deserialize file <' . $this->sourceDir . '/Dudess/Invalid.json>',
             $this->cmdTester->getDisplay()
         );
+        $this->assertEquals(1, $this->cmdTester->getStatusCode());
     }
 }

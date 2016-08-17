@@ -146,6 +146,7 @@ class ImportCommand extends ImportCommandAbstract
      */
     protected function doImport(Finder $finder, InputInterface $input, OutputInterface $output)
     {
+        $exitCode = 0;
         $host = $input->getArgument('host');
         $rewriteHost = $input->getOption('rewrite-host');
         $rewriteTo = $input->getOption('rewrite-to');
@@ -160,17 +161,15 @@ class ImportCommand extends ImportCommandAbstract
         if (empty($this->errors)) {
             // No errors
             $output->writeln("\n".'<info>No errors</info>');
-            $output->writeln('0');
-            exit(0);
         } else {
             // Yes, there was errors
             $output->writeln("\n".'<info>There was errors: '.count($this->errors).'</info>');
             foreach ($this->errors as $file => $error) {
                 $output->writeln("<error>{$file}: {$error}</error>");
             }
-            $output->writeln('1');
-            exit(1);
+            $exitCode = 1;
         }
+        return $exitCode;
     }
 
     /**
