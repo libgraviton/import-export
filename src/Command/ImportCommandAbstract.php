@@ -41,7 +41,7 @@ abstract class ImportCommandAbstract extends Command
      * @param InputInterface  $input  User input on console
      * @param OutputInterface $output Output of the command
      *
-     * @return void
+     * @return integer
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -68,12 +68,14 @@ abstract class ImportCommandAbstract extends Command
         }
 
         $finder->ignoreDotFiles(true)->filter($filter);
-        
+
+        $exitCode = 1;
         try {
-            $this->doImport($finder, $input, $output);
+            $exitCode = $this->doImport($finder, $input, $output);
         } catch (MissingTargetException $e) {
             $output->writeln('<error>' . $e->getMessage() . '</error>');
         }
+        return $exitCode;
     }
 
     /**
