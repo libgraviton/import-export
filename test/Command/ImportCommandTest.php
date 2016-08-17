@@ -76,6 +76,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
 
         $this->assertContains('Loading data from ' . $file, $cmdTester->getDisplay());
         $this->assertContains('Wrote <' . $host . $path . '>; rel="self"', $cmdTester->getDisplay());
+        $this->assertEquals(0, $cmdTester->getStatusCode());
     }
 
     /**
@@ -167,6 +168,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 $cmdTester->getDisplay()
             );
         }
+        $this->assertEquals(1, $cmdTester->getStatusCode());
     }
 
     /**
@@ -254,6 +256,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ]
         );
         $this->assertContains('Wrote <http://example.com/core/module/test>; rel="self"', $cmdTester->getDisplay());
+        $this->assertEquals(0, $cmdTester->getStatusCode());
     }
 
     /**
