@@ -42,11 +42,11 @@ trait CoreClientTrait
             return $this->client;
         }
         if ($input->getOption('mongodb')) {
-            $this->client = new \MongoClient($input->getOption('mongodb'));
+            $mongoCredentials = MongoCredentialsProvider::fromInput($input);
         } else {
             $mongoCredentials = MongoCredentialsProvider::getConnection();
-            $this->client = new \MongoClient($mongoCredentials['uri']);
         };
+        $this->client = new \MongoClient($mongoCredentials['uri']);
         return $this->client;
     }
 }
