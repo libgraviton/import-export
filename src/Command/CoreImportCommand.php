@@ -116,7 +116,7 @@ class CoreImportCommand extends ImportCommandAbstract
      * @param InputInterface  $input  User input on console
      * @param OutputInterface $output Output of the command
      *
-     * @return void
+     * @return integer
      */
     private function importResource(\SplFileInfo $file, InputInterface $input, OutputInterface $output)
     {
@@ -124,7 +124,9 @@ class CoreImportCommand extends ImportCommandAbstract
         $origDoc = $this->serializer->unserialize($doc->getContent());
 
         if (is_null($origDoc)) {
-            $output->writeln("<error>Could not deserialize file <${file}></error>");
+            $errorMessage = "<error>Could not deserialize file <${file}></error>";
+            $output->writeln($errorMessage);
+            array_push($this->errorStack, $errorMessage);
         } else {
             try {
                 $collectionName = $doc->getData()['collection'];
