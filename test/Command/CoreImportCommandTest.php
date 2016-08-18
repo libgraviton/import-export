@@ -50,12 +50,18 @@ class CoreImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder('\MongoClient')->disableOriginalConstructor()->getMock();
 
-        $collection = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
-        $collection->method('save')->will($this->returnCallback(array($this,'saveCollectionCallback')));
-        $clientMock->method('selectCollection')->willReturn($collection);
+        $collectionMock = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
+        $collectionMock->method('save')->will($this->returnCallback(array($this,'saveCollectionCallback')));
+
+        $dbMock = $this->getMockBuilder('\MongoDB')->disableOriginalConstructor()->getMock();
+        $dbMock->method('selectCollection')->willReturn($collectionMock);
+
+        $clientMock->expects($this->any())
+            ->method('selectDB')
+            ->with('db')
+            ->willReturn($dbMock);
 
         $sut = new CoreImportCommand(
-            'db',
             new FrontMatter(),
             new JsonSerializer(),
             new Finder()

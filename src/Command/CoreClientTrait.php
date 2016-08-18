@@ -21,6 +21,11 @@ trait CoreClientTrait
     protected $client;
 
     /**
+     * @var array
+     */
+    private $mongoCredentials = ['db' => 'db'];
+
+    /**
      * @param \MongoClient $client new mongodb client
      * @return void
      */
@@ -42,11 +47,24 @@ trait CoreClientTrait
             return $this->client;
         }
         if ($input->getOption('mongodb')) {
-            $this->client = new \MongoClient($input->getOption('mongodb'));
+            $mongoCredentials = MongoCredentialsProvider::fromInput($input);
         } else {
             $mongoCredentials = MongoCredentialsProvider::getConnection();
-            $this->client = new \MongoClient($mongoCredentials['uri']);
         };
+        $this->client = new \MongoClient($mongoCredentials['uri']);
+        $this->mongoCredentials = $mongoCredentials;
         return $this->client;
+    }
+
+    /**
+     * get the connection to a given database
+     *
+     * @param InputInterface $input input from user
+     *
+     * @return \MongoDB
+     */
+    function getDatabase(InputInterface $input)
+    {
+        return $this->getClient($input)->selectDB($this->mongoCredentials['db']);
     }
 }

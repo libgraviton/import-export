@@ -33,29 +33,21 @@ class CoreImportCommand extends ImportCommandAbstract
     private $serializer;
 
     /**
-     * @var string
-     */
-    private $databaseName;
-
-    /**
      * @var array
      */
     private $errorStack = [];
 
     /**
-     * @param string         $databaseName database name
-     * @param FrontMatter    $frontMatter  frontmatter parser
-     * @param JsonSerializer $serializer   serializer
-     * @param Finder         $finder       finder
+     * @param FrontMatter    $frontMatter frontmatter parser
+     * @param JsonSerializer $serializer  serializer
+     * @param Finder         $finder      finder
      */
     public function __construct(
-        $databaseName,
         FrontMatter $frontMatter,
         JsonSerializer $serializer,
         Finder $finder
     ) {
         parent::__construct($finder);
-        $this->databaseName = $databaseName;
         $this->frontMatter = $frontMatter;
         $this->serializer = $serializer;
     }
@@ -130,7 +122,7 @@ class CoreImportCommand extends ImportCommandAbstract
         } else {
             try {
                 $collectionName = $doc->getData()['collection'];
-                $this->getClient($input)->selectCollection($this->databaseName, $collectionName)->save($origDoc);
+                $this->getDatabase($input)->selectCollection($collectionName)->save($origDoc);
                 $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
             } catch (\Exception $e) {
                 $errorMessage = "<error>Error in <${file}>: ".$e->getMessage()."</error>";

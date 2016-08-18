@@ -27,11 +27,6 @@ class CoreExportCommand extends Command
     use CoreClientTrait;
 
     /**
-     * @var string
-     */
-    private $databaseName;
-
-    /**
      * @var Filesystem filesystem
      */
     private $fs;
@@ -47,18 +42,15 @@ class CoreExportCommand extends Command
     private $frontMatter;
 
     /**
-     * @param string         $databaseName database name
-     * @param Filesystem     $fs           symfony filesystem
-     * @param JsonSerializer $serializer   json serializer
-     * @param FrontMatter    $frontMatter  front matter
+     * @param Filesystem     $fs          symfony filesystem
+     * @param JsonSerializer $serializer  json serializer
+     * @param FrontMatter    $frontMatter front matter
      */
     public function __construct(
-        $databaseName,
         Filesystem $fs,
         JsonSerializer $serializer,
         FrontMatter $frontMatter
     ) {
-        $this->databaseName = $databaseName;
         $this->fs = $fs;
         $this->serializer = $serializer;
         $this->frontMatter = $frontMatter;
@@ -132,7 +124,7 @@ class CoreExportCommand extends Command
             $collectionNameFilter = '/^'.str_replace('*', '(.*)', $collectionNameFilter).'/i';
         }
 
-        foreach ($this->getClient($input)->{$this->databaseName}->listCollections() as $collection) {
+        foreach ($this->getDatabase($input)->listCollections() as $collection) {
             if ($collectionNameFilter !== null && preg_match($collectionNameFilter, $collection->getName()) === 0) {
                 continue;
             }

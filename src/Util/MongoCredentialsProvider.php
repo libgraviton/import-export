@@ -5,6 +5,7 @@
 
 namespace Graviton\ImportExport\Util;
 
+use Symfony\Component\Console\Input\InputInterface;
 use Flow\JSONPath\JSONPath;
 
 /**
@@ -32,5 +33,36 @@ class MongoCredentialsProvider
         }
 
         return $ret;
+    }
+
+    /**
+     * gets connection params from input
+     *
+     * @param InputInterface $input input from user
+     *
+     * @return array
+     */
+    public static function fromInput(InputInterface $input)
+    {
+        $uri = $input->getOption('mongodb');
+        $uriParts = parse_url($uri);
+
+        $db = 'db';
+        if (array_key_exists('path', $uriParts) && $uriParts['path'] !== '/') {
+            $db = substr($uriParts['path'], 1);
+        }
+
+        if (array_key_exists('query', $uriParts)) {
+            $queryParts = [];
+            parse_str($uriParts['query'], $queryParts);
+            if (array_key_exists('db', $queryParts) && !empty($queryParts['db'])) {
+                $db = $queryParts['db'];
+            }
+        }
+
+        return [
+            'uri' => $uri,
+            'db' => $db
+        ];
     }
 }

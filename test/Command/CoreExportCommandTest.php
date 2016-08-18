@@ -42,6 +42,8 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
+        $this->fs = new Filesystem();
+
         $clientMock = $this->getMockBuilder('\MongoClient')->disableOriginalConstructor()->getMock();
 
         $collectionData = [
@@ -73,10 +75,12 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
             [$collectionOne, $collectionTwo, $collectionThree]
         );
 
-        $clientMock->db = $dbMock;
+        $clientMock->expects($this->any())
+            ->method('selectDB')
+            ->with('db')
+            ->willReturn($dbMock);
 
         $sut = new CoreExportCommand(
-            'db',
             new Filesystem(),
             new JsonSerializer(),
             new FrontMatter()
@@ -90,7 +94,6 @@ class CoreExportCommandTest extends \PHPUnit_Framework_TestCase
 
         $this->cmdTester = new CommandTester($cmd);
 
-        $this->fs = new Filesystem();
         $this->destinationDir = __DIR__.DIRECTORY_SEPARATOR.'exportTemp'.DIRECTORY_SEPARATOR;
     }
 

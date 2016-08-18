@@ -35,12 +35,8 @@ $application->add(
 );
 
 if (class_exists('\MongoClient')) {
-    // do we have special mongo credentials?
-    $mongoCredentials = \Graviton\ImportExport\Util\MongoCredentialsProvider::getConnection();
-
     $application->add(
         new CoreImportCommand(
-            $mongoCredentials['db'],
             new FrontMatter(),
             new JsonSerializer(),
             new Finder()
@@ -48,16 +44,13 @@ if (class_exists('\MongoClient')) {
     );
     $application->add(
         new CoreExportCommand(
-            $mongoCredentials['db'],
             new Filesystem(),
             new JsonSerializer(),
             new FrontMatter()
         )
     );
     $application->add(
-        new CorePurgeCommand(
-            $mongoCredentials['db']
-        )
+        new CorePurgeCommand()
     );
 }
 $application->run();

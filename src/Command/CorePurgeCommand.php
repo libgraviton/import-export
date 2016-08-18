@@ -27,21 +27,6 @@ class CorePurgeCommand extends Command
     use CoreClientTrait;
 
     /**
-     * @var string
-     */
-    private $databaseName;
-
-    /**
-     * @param string $databaseName database name
-     */
-    public function __construct(
-        $databaseName
-    ) {
-        $this->databaseName = $databaseName;
-        parent::__construct();
-    }
-
-    /**
      * Configures the current command.
      *
      * @return void
@@ -91,7 +76,7 @@ class CorePurgeCommand extends Command
             throw new \LogicException('You must pass "yes" as parameter to show that you know what you\'re doing');
         }
 
-        foreach ($this->getClient($input)->{$this->databaseName}->listCollections() as $collection) {
+        foreach ($this->getDatabase($input)->listCollections() as $collection) {
             if ($recordOrigin === null) {
                 $this->purgeCollection($output, $collection);
             } else {
