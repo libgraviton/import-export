@@ -40,7 +40,6 @@ if (class_exists('\MongoClient')) {
 
     $application->add(
         new CoreImportCommand(
-            $mongoCredentials['db'],
             new FrontMatter(),
             new JsonSerializer(),
             new Finder()

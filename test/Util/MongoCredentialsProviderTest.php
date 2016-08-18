@@ -12,7 +12,7 @@ use Graviton\ImportExport\Util\MongoCredentialsProvider;
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class MongoCredentialsProviderTest  extends \PHPUnit_Framework_TestCase
+class MongoCredentialsProviderTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * check fromInput method

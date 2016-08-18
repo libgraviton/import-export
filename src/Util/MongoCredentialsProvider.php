@@ -38,6 +38,8 @@ class MongoCredentialsProvider
     /**
      * gets connection params from input
      *
+     * @param InputInterface $input input from user
+     *
      * @return array
      */
     public static function fromInput(InputInterface $input)
