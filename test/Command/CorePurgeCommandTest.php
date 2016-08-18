@@ -38,16 +38,17 @@ class CorePurgeCommandTest extends \PHPUnit_Framework_TestCase
         $collectionTwo = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
         $collectionTwo->expects($this->once())->method('drop')->willReturn(true);
 
-        $dbMock = $this->getMockBuilder('\MongoDb')->disableOriginalConstructor()->getMock();
+        $dbMock = $this->getMockBuilder('\MongoDB')->disableOriginalConstructor()->getMock();
         $dbMock->expects($this->once())->method('listCollections')->willReturn(
             [$collection, $collectionTwo]
         );
 
-        $clientMock->db = $dbMock;
+        $clientMock->expects($this->any())
+            ->method('selectDB')
+            ->with('db')
+            ->willReturn($dbMock);
 
-        $sut = new CorePurgeCommand(
-            'db'
-        );
+        $sut = new CorePurgeCommand();
         $sut->setClient($clientMock);
 
         $app = new Application();
