@@ -71,7 +71,7 @@ class ImportCommand extends ImportCommandAbstract
      * Header basic auth
      * @var string
      */
-    private $header_basic_auth;
+    private $headerBasicAuth;
 
     /**
      * @param HttpClient  $client      Grv HttpClient guzzle http client
@@ -162,7 +162,7 @@ class ImportCommand extends ImportCommandAbstract
         $host = $input->getArgument('host');
         $rewriteHost = $input->getOption('rewrite-host');
         $rewriteTo = $input->getOption('rewrite-to');
-        $this->header_basic_auth = $input->getOption('headers-basic-auth');
+        $this->headerBasicAuth = $input->getOption('headers-basic-auth');
         if ($rewriteTo === $this->getDefinition()->getOption('rewrite-to')->getDefault()) {
             $rewriteTo = $host;
         }
@@ -299,8 +299,8 @@ class ImportCommand extends ImportCommandAbstract
             'json'   => $this->parseContent($content, $file),
             'upload' => $uploadFile
         ];
-        if ($this->header_basic_auth) {
-            $data['headers'] = ['Authorization' => 'Basic '. base64_encode($this->header_basic_auth)];
+        if ($this->headerBasicAuth) {
+            $data['headers'] = ['Authorization' => 'Basic '. base64_encode($this->headerBasicAuth)];
         }
         $promise = $this->client->requestAsync(
             'PUT',
