@@ -68,6 +68,12 @@ class ImportCommand extends ImportCommandAbstract
     private $errors = [];
 
     /**
+     * Header basic auth
+     * @var string
+     */
+    private $header_basic_auth;
+
+    /**
      * @param HttpClient  $client      Grv HttpClient guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
@@ -123,6 +129,12 @@ class ImportCommand extends ImportCommandAbstract
                 InputOption::VALUE_NONE,
                 'Send requests synchronously'
             )
+            ->addOption(
+                'headers-basic-auth',
+                'a',
+                InputOption::VALUE_OPTIONAL,
+                'Header user:password for Basic auth'
+            )
             ->addArgument(
                 'host',
                 InputArgument::REQUIRED,
@@ -150,6 +162,7 @@ class ImportCommand extends ImportCommandAbstract
         $host = $input->getArgument('host');
         $rewriteHost = $input->getOption('rewrite-host');
         $rewriteTo = $input->getOption('rewrite-to');
+        $this->header_basic_auth = $input->getOption('headers-basic-auth');
         if ($rewriteTo === $this->getDefinition()->getOption('rewrite-to')->getDefault()) {
             $rewriteTo = $host;
         }
@@ -286,6 +299,9 @@ class ImportCommand extends ImportCommandAbstract
             'json'   => $this->parseContent($content, $file),
             'upload' => $uploadFile
         ];
+        if ($this->header_basic_auth) {
+            $data['headers'] = ['Authorization' => 'Basic '. base64_encode($this->header_basic_auth)];
+        }
         $promise = $this->client->requestAsync(
             'PUT',
             $targetUrl,
