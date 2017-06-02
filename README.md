@@ -83,6 +83,22 @@ links:
       type: "accountType" 
       $ref: "http://localhost/entity/code/accountType-1" 
 ```
+## Validate Files
+Files are not native YML or JSON file so using this command you can easily check if they are ok.
+```php
+php ./bin/graviton-import-export graviton:validate:import /{full path to}/initialdata/data/
+```
+You can also check for any subfolder directly. 
+Output (single error sample):
+```bash
+Validation will be done for: 60047 files 
+ 60047/60047 [============================] 100%
+Finished
+
+With: 1 Errors
+/initialdata/data/param/0_general/event/action/error_file.yml: Malformed inline YAML string ("error_file) at line 1 (near "id: "error_file").
+```
+
 
 ## Building Docker Runtime
 
