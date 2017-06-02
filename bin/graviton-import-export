@@ -12,6 +12,7 @@ use Graviton\ImportExport\Command\ImportCommand;
 use Graviton\ImportExport\Command\CoreExportCommand;
 use Graviton\ImportExport\Command\CoreImportCommand;
 use Graviton\ImportExport\Command\CorePurgeCommand;
+use Graviton\ImportExport\Command\ValidationCommand;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Yaml\Parser;
@@ -51,6 +52,12 @@ if (class_exists('\MongoClient')) {
     );
     $application->add(
         new CorePurgeCommand()
+    );
+    $application->add(
+        new ValidationCommand(
+            new FrontMatter(),
+            new Parser()
+        )
     );
 }
 $application->run();
