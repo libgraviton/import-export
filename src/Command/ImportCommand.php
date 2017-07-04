@@ -75,7 +75,7 @@ class ImportCommand extends ImportCommandAbstract
 
     /**
      * Header for custom variables
-     * @var string
+     * @var array
      */
     private $customHeaders;
 
@@ -172,7 +172,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param InputInterface  $input  User input on console
      * @param OutputInterface $output Output of the command
      *
-     * @return void
+     * @return integer
      */
     protected function doImport(Finder $finder, InputInterface $input, OutputInterface $output)
     {
@@ -263,7 +263,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
      * @param boolean         $sync        send requests syncronously
      *
-     * @return Promise\Promise|null
+     * @return Promise\PromiseInterface|null
      */
     protected function importResource(
         $targetUrl,
@@ -318,6 +318,8 @@ class ImportCommand extends ImportCommandAbstract
             'upload' => $uploadFile,
             'headers'=> []
         ];
+
+        // Authentication or custom headers.
         if ($this->headerBasicAuth) {
             $data['headers']['Authorization'] = 'Basic '. base64_encode($this->headerBasicAuth);
         }
@@ -326,6 +328,9 @@ class ImportCommand extends ImportCommandAbstract
                 list($key, $value) = explode(':', $headers);
                 $data['headers'][$key] = $value;
             }
+        }
+        if (empty($data['headers'])) {
+            unset($data['headers']);
         }
 
         $promise = $this->client->requestAsync(
