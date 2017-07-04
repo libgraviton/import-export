@@ -74,6 +74,12 @@ class ImportCommand extends ImportCommandAbstract
     private $headerBasicAuth;
 
     /**
+     * Header for custom variables
+     * @var string
+     */
+    private $customHeaders;
+
+    /**
      * @param HttpClient  $client      Grv HttpClient guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
@@ -134,6 +140,12 @@ class ImportCommand extends ImportCommandAbstract
                 'a',
                 InputOption::VALUE_OPTIONAL,
                 'Header user:password for Basic auth'
+            )
+            ->addOption(
+                'custom-headers',
+                'c',
+                InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
+                'Custom Header variable(s), -c{key:value} and multiple is optional.'
             )
             ->addOption(
                 'input-file',
@@ -236,7 +248,7 @@ class ImportCommand extends ImportCommandAbstract
         }
 
         try {
-            //Promise\unwrap($promises);
+            Promise\unwrap($promises);
         } catch (ClientException $e) {
             // silently ignored since we already output an error when the promise fails
         }
@@ -303,11 +315,19 @@ class ImportCommand extends ImportCommandAbstract
 
         $data = [
             'json'   => $this->parseContent($content, $file),
-            'upload' => $uploadFile
+            'upload' => $uploadFile,
+            'headers'=> []
         ];
         if ($this->headerBasicAuth) {
-            $data['headers'] = ['Authorization' => 'Basic '. base64_encode($this->headerBasicAuth)];
+            $data['headers']['Authorization'] = 'Basic '. base64_encode($this->headerBasicAuth);
         }
+        if ($this->customHeaders) {
+            foreach ($this->customHeaders as $headers) {
+                list($key, $value) = explode(':', $headers);
+                $data['headers'][$key] = $value;
+            }
+        }
+
         $promise = $this->client->requestAsync(
             'PUT',
             $targetUrl,
