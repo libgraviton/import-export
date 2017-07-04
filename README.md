@@ -99,6 +99,13 @@ With: 1 Errors
 /initialdata/data/param/0_general/event/action/error_file.yml: Malformed inline YAML string ("error_file) at line 1 (near "id: "error_file").
 ```
 
+## Authentication and Headers on "put" import
+Some endpoints may require basic auth or some cookie or header to be sent. -a and -c can be used in combination.
+```php
+-a is for "basic auth", this will do a base 64 encode header. -a{user:passw}
+-c is for Customer Header(s), -c{key:value}  just add more if needed, -c is array enabled.
+php ./bin/graviton-import-export graviton:import http://... /{full path to}/initialdata/data/ -ajohn:doe -cheader1:value1 -cheader2:value2
+```
 
 ## Building Docker Runtime
 
