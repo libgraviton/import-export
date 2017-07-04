@@ -2,11 +2,11 @@
     "name": "graviton/import-export",
     "description": "Tooling to help importing and exporting graviton data through REST.",
     "type": "cli",
-    "license": "GPL",
+    "license": "MIT",
     "authors": [
         {
-            "name": "Lucas Bickel",
-            "email": "lucas.bickel@swisscom.com"
+            "name": "List of contributors",
+            "homepage": "https://github.com/libgraviton/import-export/graphs/contributors"
         }
     ],
     "require": {
