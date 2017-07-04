@@ -214,8 +214,6 @@ class ImportCommand extends ImportCommandAbstract
         $promises = [];
         /** @var SplFileInfo $file */
         foreach ($finder as $file) {
-            var_dump($file->getPathname());
-            /*
             $doc = $this->frontMatter->parse($file->getContents());
 
             $output->writeln("<info>Loading data from ${file}</info>");
@@ -235,7 +233,6 @@ class ImportCommand extends ImportCommandAbstract
                 $rewriteTo,
                 $sync
             );
-            */
         }
 
         try {
