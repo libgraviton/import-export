@@ -135,6 +135,12 @@ class ImportCommand extends ImportCommandAbstract
                 InputOption::VALUE_OPTIONAL,
                 'Header user:password for Basic auth'
             )
+            ->addOption(
+                'input-file',
+                'i',
+                InputOption::VALUE_REQUIRED,
+                'If provided, the list of files to load will be loaded from this file, one file per line.'
+            )
             ->addArgument(
                 'host',
                 InputArgument::REQUIRED,
@@ -142,7 +148,7 @@ class ImportCommand extends ImportCommandAbstract
             )
             ->addArgument(
                 'file',
-                InputArgument::REQUIRED + InputArgument::IS_ARRAY,
+                InputArgument::IS_ARRAY,
                 'Directories or files to load'
             );
     }
@@ -208,6 +214,8 @@ class ImportCommand extends ImportCommandAbstract
         $promises = [];
         /** @var SplFileInfo $file */
         foreach ($finder as $file) {
+            var_dump($file->getPathname());
+            /*
             $doc = $this->frontMatter->parse($file->getContents());
 
             $output->writeln("<info>Loading data from ${file}</info>");
@@ -227,10 +235,11 @@ class ImportCommand extends ImportCommandAbstract
                 $rewriteTo,
                 $sync
             );
+            */
         }
 
         try {
-            Promise\unwrap($promises);
+            //Promise\unwrap($promises);
         } catch (ClientException $e) {
             // silently ignored since we already output an error when the promise fails
         }
