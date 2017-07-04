@@ -68,9 +68,15 @@ class CoreImportCommand extends ImportCommandAbstract
                 InputOption::VALUE_REQUIRED,
                 'MongoDB connection URL.'
             )
+            ->addOption(
+                'input-file',
+                'i',
+                InputOption::VALUE_REQUIRED,
+                'If provided, the list of files to load will be loaded from this file, one file per line.'
+            )
             ->addArgument(
                 'file',
-                InputArgument::REQUIRED + InputArgument::IS_ARRAY,
+                InputArgument::IS_ARRAY,
                 'Directories or files to load'
             );
     }

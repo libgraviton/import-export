@@ -135,6 +135,12 @@ class ImportCommand extends ImportCommandAbstract
                 InputOption::VALUE_OPTIONAL,
                 'Header user:password for Basic auth'
             )
+            ->addOption(
+                'input-file',
+                'i',
+                InputOption::VALUE_REQUIRED,
+                'If provided, the list of files to load will be loaded from this file, one file per line.'
+            )
             ->addArgument(
                 'host',
                 InputArgument::REQUIRED,
@@ -142,7 +148,7 @@ class ImportCommand extends ImportCommandAbstract
             )
             ->addArgument(
                 'file',
-                InputArgument::REQUIRED + InputArgument::IS_ARRAY,
+                InputArgument::IS_ARRAY,
                 'Directories or files to load'
             );
     }
@@ -230,7 +236,7 @@ class ImportCommand extends ImportCommandAbstract
         }
 
         try {
-            Promise\unwrap($promises);
+            //Promise\unwrap($promises);
         } catch (ClientException $e) {
             // silently ignored since we already output an error when the promise fails
         }

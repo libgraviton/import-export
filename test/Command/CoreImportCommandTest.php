@@ -107,6 +107,14 @@ class CoreImportCommandTest extends \PHPUnit_Framework_TestCase
 
         $this->assertCount(4, $this->saves);
 
+        // sort by id..
+        $saveIds = [];
+        foreach ($this->saves as $key => $record) {
+            $saveIds[$key] = $record['_id'];
+        }
+
+        array_multisort($saveIds, SORT_ASC, $this->saves);
+
         // ids..
         $this->assertSame('Record1', $this->saves[0]['_id']);
         $this->assertSame('Record2', $this->saves[1]['_id']);
