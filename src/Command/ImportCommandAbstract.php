@@ -45,7 +45,31 @@ abstract class ImportCommandAbstract extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $exitCode = 1;
+        try {
+            $exitCode = $this->doImport($this->getFinder($input), $input, $output);
+        } catch (MissingTargetException $e) {
+            $output->writeln('<error>' . $e->getMessage() . '</error>');
+        }
+        return $exitCode;
+    }
+
+    /**
+     * Returns a Finder according to the input params
+     *
+     * @param InputInterface $input User input on console
+     *
+     * @return Finder|SplFileInfo[] finder
+     */
+    protected function getFinder($input)
+    {
         $files = $input->getArgument('file');
+        $inputFile = $input->getOption('input-file');
+
+        if (empty($files) && is_null($inputFile)) {
+            throw new \LogicException('You either need to provide <file> arguments or the --input-file option.');
+        }
+
         $finder = $this->finder->files();
 
         /**
@@ -59,23 +83,39 @@ abstract class ImportCommandAbstract extends Command
             return true;
         };
 
-        foreach ($files as $file) {
-            if (is_file($file)) {
-                $finder->in(dirname($file))->name(basename($file));
-            } else {
-                $finder->in($file);
+        if (is_null($inputFile)) {
+            // normal way - file arguments..
+            foreach ($files as $file) {
+                if (is_file($file)) {
+                    $finder->in(dirname($file))->name(basename($file));
+                } else {
+                    $finder->in($file);
+                }
             }
+        } else {
+            // file list via input file
+            if (!file_exists($inputFile)) {
+                throw new \LogicException('File '.$inputFile.' does not seem to exist.');
+            }
+
+            $fileList = explode(PHP_EOL, file_get_contents($inputFile));
+
+            $fileList = array_filter(
+                $fileList,
+                function ($val) {
+                    if (!empty($val)) {
+                        return true;
+                    }
+                    return false;
+                }
+            );
+
+            $finder->append($fileList);
         }
 
         $finder->ignoreDotFiles(true)->filter($filter);
 
-        $exitCode = 1;
-        try {
-            $exitCode = $this->doImport($finder, $input, $output);
-        } catch (MissingTargetException $e) {
-            $output->writeln('<error>' . $e->getMessage() . '</error>');
-        }
-        return $exitCode;
+        return $finder;
     }
 
     /**

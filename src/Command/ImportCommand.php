@@ -74,6 +74,12 @@ class ImportCommand extends ImportCommandAbstract
     private $headerBasicAuth;
 
     /**
+     * Header for custom variables
+     * @var array
+     */
+    private $customHeaders;
+
+    /**
      * @param HttpClient  $client      Grv HttpClient guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
@@ -135,6 +141,18 @@ class ImportCommand extends ImportCommandAbstract
                 InputOption::VALUE_OPTIONAL,
                 'Header user:password for Basic auth'
             )
+            ->addOption(
+                'custom-headers',
+                'c',
+                InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
+                'Custom Header variable(s), -c{key:value} and multiple is optional.'
+            )
+            ->addOption(
+                'input-file',
+                'i',
+                InputOption::VALUE_REQUIRED,
+                'If provided, the list of files to load will be loaded from this file, one file per line.'
+            )
             ->addArgument(
                 'host',
                 InputArgument::REQUIRED,
@@ -142,7 +160,7 @@ class ImportCommand extends ImportCommandAbstract
             )
             ->addArgument(
                 'file',
-                InputArgument::REQUIRED + InputArgument::IS_ARRAY,
+                InputArgument::IS_ARRAY,
                 'Directories or files to load'
             );
     }
@@ -154,7 +172,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param InputInterface  $input  User input on console
      * @param OutputInterface $output Output of the command
      *
-     * @return void
+     * @return integer
      */
     protected function doImport(Finder $finder, InputInterface $input, OutputInterface $output)
     {
@@ -245,7 +263,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
      * @param boolean         $sync        send requests syncronously
      *
-     * @return Promise\Promise|null
+     * @return Promise\PromiseInterface|null
      */
     protected function importResource(
         $targetUrl,
@@ -297,11 +315,24 @@ class ImportCommand extends ImportCommandAbstract
 
         $data = [
             'json'   => $this->parseContent($content, $file),
-            'upload' => $uploadFile
+            'upload' => $uploadFile,
+            'headers'=> []
         ];
+
+        // Authentication or custom headers.
         if ($this->headerBasicAuth) {
-            $data['headers'] = ['Authorization' => 'Basic '. base64_encode($this->headerBasicAuth)];
+            $data['headers']['Authorization'] = 'Basic '. base64_encode($this->headerBasicAuth);
         }
+        if ($this->customHeaders) {
+            foreach ($this->customHeaders as $headers) {
+                list($key, $value) = explode(':', $headers);
+                $data['headers'][$key] = $value;
+            }
+        }
+        if (empty($data['headers'])) {
+            unset($data['headers']);
+        }
+
         $promise = $this->client->requestAsync(
             'PUT',
             $targetUrl,
