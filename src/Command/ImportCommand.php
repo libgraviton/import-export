@@ -181,6 +181,7 @@ class ImportCommand extends ImportCommandAbstract
         $rewriteHost = $input->getOption('rewrite-host');
         $rewriteTo = $input->getOption('rewrite-to');
         $this->headerBasicAuth = $input->getOption('headers-basic-auth');
+        $this->customHeaders = $input->getOption('custom-headers');
         if ($rewriteTo === $this->getDefinition()->getOption('rewrite-to')->getDefault()) {
             $rewriteTo = $host;
         }
