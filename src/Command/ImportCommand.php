@@ -232,7 +232,7 @@ class ImportCommand extends ImportCommandAbstract
             $filePath = getcwd().'/'.str_replace(getcwd(), '', $file->getPath().'/'.$file->getFilename());
             //need to check when the -i option is used
             if (!file_exists($filePath)) {
-               continue;
+                continue;
             }
 
             $doc = $this->frontMatter->parse(file_get_contents($filePath));
