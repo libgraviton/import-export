@@ -227,15 +227,15 @@ class ImportCommand extends ImportCommandAbstract
         $promises = [];
         /** @var SplFileInfo $file */
         foreach ($finder as $file) {
-           //always create a valid path. Especialy when using the -i option there
-           //will not be a valid path information for every file
-           $filePath = getcwd().'/'.str_replace(getcwd(), '', $file->getPath().'/'.$file->getFilename());
-           //need to check when the -i option is used
-           if (!file_exists($filePath)) {
+            //always create a valid path. Especialy when using the -i option there
+            //will not be a valid path information for every file
+            $filePath = getcwd().'/'.str_replace(getcwd(), '', $file->getPath().'/'.$file->getFilename());
+            //need to check when the -i option is used
+            if (!file_exists($filePath)) {
                continue;
-           }
+            }
 
-           $doc = $this->frontMatter->parse(file_get_contents($filePath));
+            $doc = $this->frontMatter->parse(file_get_contents($filePath));
             $output->writeln("<info>Loading data from ${file}</info>");
 
             if (!array_key_exists('target', $doc->getData())) {
