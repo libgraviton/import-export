@@ -55,4 +55,32 @@ class JsonSerializer extends BaseSerializer
 
         return parent::unserializeObject($value);
     }
+
+    /**
+     * Extract the object data
+     *
+     * @param object          $value      obj
+     * @param ReflectionClass $ref        ref
+     * @param array           $properties props
+     *
+     * @return array
+     */
+    protected function extractObjectData($value, $ref, $properties)
+    {
+        $data = array();
+        foreach ($properties as $property) {
+            try {
+                if (class_exists('\MongoDB\BSON\ObjectId') && $value instanceof \MongoDB\BSON\ObjectId) {
+                    $data['oid'] = $value->__toString();
+                } else {
+                    $propRef = $ref->getProperty($property);
+                    $propRef->setAccessible(true);
+                    $data[$property] = $propRef->getValue($value);
+                }
+            } catch (\ReflectionException $e) {
+                $data[$property] = $value->$property;
+            }
+        }
+        return $data;
+    }
 }
