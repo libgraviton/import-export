@@ -110,7 +110,13 @@ abstract class ImportCommandAbstract extends Command
                 }
             );
 
-            $finder->append($fileList);
+            foreach ($fileList as $file) {
+                if (is_file($file)) {
+                    $finder->in(dirname($file))->name(basename($file));
+                } else {
+                    $finder->in($file);
+                }
+            }
         }
 
         $finder->ignoreDotFiles(true)->filter($filter);
