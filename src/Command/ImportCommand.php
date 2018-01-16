@@ -13,7 +13,6 @@ use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Graviton\ImportExport\Service\HttpClient;
-use GuzzleHttp\Exception\ClientException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -23,11 +22,9 @@ use Symfony\Component\Yaml\Parser;
 use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
 use GuzzleHttp\Promise;
-use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\Finder\SplFileInfo;
 use Webuni\FrontMatter\FrontMatter;
 use Webuni\FrontMatter\Document;
-use Psr\Http\Message\ResponseInterface;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
@@ -137,7 +134,7 @@ class ImportCommand extends ImportCommandAbstract
             )
             ->addOption(
                 'no-overwrite',
-                'n',
+                'o',
                 InputOption::VALUE_NONE,
                 'If set, we will check for record existence and not overwrite existing ones.'
             )
@@ -191,10 +188,9 @@ class ImportCommand extends ImportCommandAbstract
         if ($rewriteTo === $this->getDefinition()->getOption('rewrite-to')->getDefault()) {
             $rewriteTo = $host;
         }
-        $sync = $input->getOption('sync-requests');
         $noOverwrite = $input->getOption('no-overwrite');
 
-        $this->importPaths($finder, $output, $host, $rewriteHost, $rewriteTo, $sync, $noOverwrite);
+        $this->importPaths($finder, $output, $host, $rewriteHost, $rewriteTo, $noOverwrite);
 
         // Error exit
         if (empty($this->errors)) {
@@ -230,10 +226,8 @@ class ImportCommand extends ImportCommandAbstract
         $host,
         $rewriteHost,
         $rewriteTo,
-        $sync = false,
         $noOverwrite = false
     ) {
-        $promises = [];
         /** @var SplFileInfo $file */
         foreach ($finder as $file) {
             $doc = $this->frontMatter->parse($file->getContents());
@@ -246,22 +240,15 @@ class ImportCommand extends ImportCommandAbstract
 
             $targetUrl = sprintf('%s%s', $host, $doc->getData()['target']);
 
-            $promises[] = $this->importResource(
+            $this->importResource(
                 $targetUrl,
                 (string) $file,
                 $output,
                 $doc,
                 $rewriteHost,
                 $rewriteTo,
-                $sync,
                 $noOverwrite
             );
-        }
-
-        try {
-            Promise\unwrap($promises);
-        } catch (ClientException $e) {
-            // silently ignored since we already output an error when the promise fails
         }
     }
 
@@ -272,7 +259,6 @@ class ImportCommand extends ImportCommandAbstract
      * @param Document        $doc         document to load
      * @param string          $rewriteHost string to replace with value from $host during loading
      * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
-     * @param boolean         $sync        send requests syncronously
      * @param boolean         $noOverwrite should we not overwrite existing records?
      *
      * @return Promise\PromiseInterface|null
@@ -284,19 +270,80 @@ class ImportCommand extends ImportCommandAbstract
         Document $doc,
         $rewriteHost,
         $rewriteTo,
-        $sync = false,
         $noOverwrite = false
     ) {
         $content = str_replace($rewriteHost, $rewriteTo, $doc->getContent());
         $uploadFile = $this->validateUploadFile($doc, $file);
 
-        $successFunc = function (ResponseInterface $response) use ($output) {
+        $data = [
+            'json'   => $this->parseContent($content, $file),
+            'upload' => $uploadFile,
+            'headers'=> []
+        ];
+
+        // Authentication or custom headers.
+        if ($this->headerBasicAuth) {
+            $data['headers']['Authorization'] = 'Basic '. base64_encode($this->headerBasicAuth);
+        }
+        if ($this->customHeaders) {
+            foreach ($this->customHeaders as $headers) {
+                list($key, $value) = explode(':', $headers);
+                $data['headers'][$key] = $value;
+            }
+        }
+        if (empty($data['headers'])) {
+            unset($data['headers']);
+        }
+
+        // skip if no overwriting has been requested
+        if ($noOverwrite) {
+            $response = $this->client->request('GET', $targetUrl, array_merge($data, ['http_errors' => false]));
+            if ($response->getStatusCode() == 200) {
+                $output->writeln(
+                    '<info>' . str_pad(
+                        sprintf(
+                            'Skipping <%s> as "no overwrite" is activated and it does exist.',
+                            $targetUrl
+                        ),
+                        140,
+                        ' '
+                    ) . '</info>'
+                );
+                return;
+            }
+        }
+
+        try {
+            if ($uploadFile) {
+                unset($this->errors[$file]);
+                try {
+                    $this->client->request('DELETE', $targetUrl, $data);
+                    $output->writeln('<info>File deleted: '.$targetUrl.'</info>');
+                } catch (\Exception $e) {
+                    $output->writeln(
+                        '<error>' . str_pad(
+                            sprintf(
+                                'Failed to delete <%s> with message \'%s\'',
+                                $targetUrl,
+                                $e->getMessage()
+                            ),
+                            140,
+                            ' '
+                        ) . '</error>'
+                    );
+                }
+            }
+
+            $response = $this->client->request(
+                'PUT',
+                $targetUrl,
+                $data
+            );
+
             $output->writeln(
                 '<comment>Wrote ' . $response->getHeader('Link')[0] . '</comment>'
             );
-        };
-
-        $errFunc = function (RequestException $e) use ($output, $file) {
+        } catch (\Exception $e) {
             $this->errors[$file] = $e->getMessage();
             $output->writeln(
                 '<error>' . str_pad(
@@ -324,60 +371,7 @@ class ImportCommand extends ImportCommandAbstract
                     }
                 );
             }
-        };
-
-        $data = [
-            'json'   => $this->parseContent($content, $file),
-            'upload' => $uploadFile,
-            'headers'=> []
-        ];
-
-        // Authentication or custom headers.
-        if ($this->headerBasicAuth) {
-            $data['headers']['Authorization'] = 'Basic '. base64_encode($this->headerBasicAuth);
         }
-        if ($this->customHeaders) {
-            foreach ($this->customHeaders as $headers) {
-                list($key, $value) = explode(':', $headers);
-                $data['headers'][$key] = $value;
-            }
-        }
-        if (empty($data['headers'])) {
-            unset($data['headers']);
-        }
-
-        $promise = $this->client->requestAsync(
-            'PUT',
-            $targetUrl,
-            $data
-        );
-
-        // If there is a file to be uploaded, and it exists in remote, we delete it first.
-        // TODO This part, $uploadFile, promise should be removed once Graviton/File service is resolved in new Story.
-        $fileRepeatFunc = false;
-        if ($uploadFile) {
-            $fileRepeatFunc = function () use ($targetUrl, $successFunc, $errFunc, $output, $file, $data) {
-                unset($this->errors[$file]);
-                $output->writeln('<info>File deleting: '.$targetUrl.'</info>');
-                $deleteRequest = $this->client->requestAsync('DELETE', $targetUrl);
-                $insert = function () use ($targetUrl, $successFunc, $errFunc, $output, $data) {
-                    $output->writeln('<info>File inserting: '.$targetUrl.'</info>');
-                    $promiseInsert = $this->client->requestAsync('PUT', $targetUrl, $data);
-                    $promiseInsert->then($successFunc, $errFunc);
-                };
-                $deleteRequest
-                    ->then($insert, $errFunc)->wait();
-            };
-        }
-
-        $promiseError = $fileRepeatFunc ? $fileRepeatFunc : $errFunc;
-        if ($sync) {
-            $promise->then($successFunc, $promiseError)->wait();
-        } else {
-            $promise->then($successFunc, $promiseError);
-        }
-
-        return $promise;
     }
 
     /**
