@@ -5,6 +5,7 @@
 
 namespace Graviton\ImportExport\Command;
 
+use Graviton\ImportExport\Util\JsonSerializer;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 
@@ -15,7 +16,6 @@ use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\Filesystem\Filesystem;
 use Webuni\FrontMatter\FrontMatter;
 use Webuni\FrontMatter\Document;
-use Zumba\Util\JsonSerializer;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>

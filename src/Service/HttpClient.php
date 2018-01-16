@@ -54,7 +54,7 @@ class HttpClient extends Client
         if (!$fileName) {
             return $options;
         }
-        
+
         // We create a MultiPart form, Graviton decode the "metadata" value.
         $options['multipart'] = [
             [
@@ -72,6 +72,5 @@ class HttpClient extends Client
         unset($options['json']);
 
         return $options;
-
     }
 }
