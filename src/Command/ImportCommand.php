@@ -136,6 +136,12 @@ class ImportCommand extends ImportCommandAbstract
                 'Send requests synchronously'
             )
             ->addOption(
+                'no-overwrite',
+                'n',
+                InputOption::VALUE_NONE,
+                'If set, we will check for record existence and not overwrite existing ones.'
+            )
+            ->addOption(
                 'headers-basic-auth',
                 'a',
                 InputOption::VALUE_OPTIONAL,
@@ -186,8 +192,9 @@ class ImportCommand extends ImportCommandAbstract
             $rewriteTo = $host;
         }
         $sync = $input->getOption('sync-requests');
+        $noOverwrite = $input->getOption('no-overwrite');
 
-        $this->importPaths($finder, $output, $host, $rewriteHost, $rewriteTo, $sync);
+        $this->importPaths($finder, $output, $host, $rewriteHost, $rewriteTo, $sync, $noOverwrite);
 
         // Error exit
         if (empty($this->errors)) {
@@ -211,6 +218,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param string          $rewriteHost string to replace with value from $rewriteTo during loading
      * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
      * @param boolean         $sync        send requests syncronously
+     * @param boolean         $noOverwrite should we not overwrite existing records?
      *
      * @return void
      *
@@ -222,7 +230,8 @@ class ImportCommand extends ImportCommandAbstract
         $host,
         $rewriteHost,
         $rewriteTo,
-        $sync = false
+        $sync = false,
+        $noOverwrite = false
     ) {
         $promises = [];
         /** @var SplFileInfo $file */
@@ -244,7 +253,8 @@ class ImportCommand extends ImportCommandAbstract
                 $doc,
                 $rewriteHost,
                 $rewriteTo,
-                $sync
+                $sync,
+                $noOverwrite
             );
         }
 
@@ -263,6 +273,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param string          $rewriteHost string to replace with value from $host during loading
      * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
      * @param boolean         $sync        send requests syncronously
+     * @param boolean         $noOverwrite should we not overwrite existing records?
      *
      * @return Promise\PromiseInterface|null
      */
@@ -273,7 +284,8 @@ class ImportCommand extends ImportCommandAbstract
         Document $doc,
         $rewriteHost,
         $rewriteTo,
-        $sync = false
+        $sync = false,
+        $noOverwrite = false
     ) {
         $content = str_replace($rewriteHost, $rewriteTo, $doc->getContent());
         $uploadFile = $this->validateUploadFile($doc, $file);
@@ -364,8 +376,6 @@ class ImportCommand extends ImportCommandAbstract
         } else {
             $promise->then($successFunc, $promiseError);
         }
-
-
 
         return $promise;
     }
