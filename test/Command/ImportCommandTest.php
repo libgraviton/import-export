@@ -40,12 +40,6 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
 
-        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
-
-        $clientMock
-            ->method('requestAsync')
-            ->will($this->returnValue($promiseMock));
-
         $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
@@ -53,15 +47,9 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ->with('Link')
             ->willReturn(['<' . $host . $path . '>; rel="self"']);
 
-        $promiseMock
-            ->method('then')
-            ->will(
-                $this->returnCallback(
-                    function ($ok) use ($responseMock) {
-                        $ok($responseMock);
-                    }
-                )
-            );
+        $clientMock
+            ->method('request')
+            ->will($this->returnValue($responseMock));
 
         $sut = new ImportCommand(
             $clientMock,
@@ -111,17 +99,15 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
     {
         $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
 
-        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
-
-        $clientMock
-            ->method('requestAsync')
-            ->will($this->returnValue($promiseMock));
-
         $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
 
         $responseMock
             ->method('getBody')
             ->willReturn(json_encode((object) ["message" => "invalid"]));
+        $responseMock
+            ->method('getHeader')
+            ->with('Link')
+            ->willReturn(['<' . $host . $file . '>; rel="self"']);
 
         $requestMock = $this->createMock('Psr\Http\Message\RequestInterface');
         $requestMock
@@ -140,15 +126,9 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ->method('getResponse')
             ->willReturn($responseMock);
 
-        $promiseMock
-            ->method('then')
-            ->will(
-                $this->returnCallback(
-                    function ($ok, $nok) use ($exceptionMock) {
-                        return $nok($exceptionMock);
-                    }
-                )
-            );
+        $clientMock
+            ->method('request')
+            ->willThrowException($exceptionMock);
 
         $sut = new ImportCommand(
             $clientMock,
@@ -203,12 +183,17 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
      */
     public function testRewrite()
     {
+        $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
+
+        $responseMock
+            ->method('getHeader')
+            ->with('Link')
+            ->willReturn(['<http://example.com/core/module/test>; rel="self"']);
+
         $clientMock = $this->getMockBuilder(self::CLIENT)->getMock();
 
-        $promiseMock = $this->createMock('GuzzleHttp\Promise\Promise');
-
         $clientMock
-            ->method('requestAsync')
+            ->method('request')
             ->with(
                 $this->equalTo('PUT'),
                 $this->equalTo('http://example.com/core/module/test'),
@@ -219,24 +204,7 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                     ]
                 )
             )
-            ->will($this->returnValue($promiseMock));
-
-        $responseMock = $this->createMock('Psr\Http\Message\ResponseInterface');
-
-        $responseMock
-            ->method('getHeader')
-            ->with('Link')
-            ->willReturn(['<http://example.com/core/module/test>; rel="self"']);
-
-        $promiseMock
-            ->method('then')
-            ->will(
-                $this->returnCallback(
-                    function ($ok) use ($responseMock) {
-                        $ok($responseMock);
-                    }
-                )
-            );
+            ->will($this->returnValue($responseMock));
 
         $sut = new ImportCommand(
             $clientMock,

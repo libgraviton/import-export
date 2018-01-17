@@ -213,7 +213,6 @@ class ImportCommand extends ImportCommandAbstract
      * @param string          $host        host to import into
      * @param string          $rewriteHost string to replace with value from $rewriteTo during loading
      * @param string          $rewriteTo   string to replace value from $rewriteHost with during loading
-     * @param boolean         $sync        send requests syncronously
      * @param boolean         $noOverwrite should we not overwrite existing records?
      *
      * @return void
