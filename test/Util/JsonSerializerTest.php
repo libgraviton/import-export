@@ -24,7 +24,7 @@ class JsonSerializerTest extends \PHPUnit_Framework_TestCase
     {
         $origClass = new \stdClass();
         $origClass->id = 'Class';
-        $origClass->mongoId = new \MongoId();
+        $origClass->mongoId = new \MongoId('5a5e05679ca9b2108b5e2ac9');
         $origClass->mongoDate = new \MongoDate();
 
         $serializer = new JsonSerializer();

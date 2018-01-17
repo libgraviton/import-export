@@ -1,1 +1,5 @@
-vendor/
+test
+.travis.yml
+index.html
+manifest.yml
+*.dist

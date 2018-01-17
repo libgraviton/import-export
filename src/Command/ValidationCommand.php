@@ -65,7 +65,7 @@ class ValidationCommand extends Command
     {
         $this
             ->setName('graviton:validate:import')
-            ->setDescription('Import files from a folder or file.')
+            ->setDescription('Validates data files to check if they can be imported.')
             ->addArgument(
                 'file',
                 InputArgument::REQUIRED + InputArgument::IS_ARRAY,

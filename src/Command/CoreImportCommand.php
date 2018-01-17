@@ -119,7 +119,15 @@ class CoreImportCommand extends ImportCommandAbstract
     private function importResource(\SplFileInfo $file, InputInterface $input, OutputInterface $output)
     {
         $doc = $this->frontMatter->parse($file->getContents());
-        $origDoc = $this->serializer->unserialize($doc->getContent());
+
+        try {
+            $origDoc = $this->serializer->unserialize($doc->getContent());
+        } catch (\Exception $e) {
+            $errorMessage = "<error>Error in <${file}>: ".$e->getMessage()."</error>";
+            $output->writeln($errorMessage);
+            $this->errorStack[] = $errorMessage;
+            return;
+        }
 
         if (is_null($origDoc)) {
             $errorMessage = "<error>Could not deserialize file <${file}></error>";
