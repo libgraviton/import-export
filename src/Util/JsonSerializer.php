@@ -8,7 +8,8 @@
 
 namespace Graviton\ImportExport\Util;
 
-use Zumba\Util\JsonSerializer as BaseSerializer;
+use Zumba\JsonSerializer\Exception\JsonSerializerException;
+use Zumba\JsonSerializer\JsonSerializer as BaseSerializer;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
@@ -20,18 +21,31 @@ class JsonSerializer extends BaseSerializer
     /**
      * Convert the serialized array into an object
      *
-     * @param aray $value
+     * @param mixed $value the value
      * @return object
-     * @throws Zumba\Exception\JsonSerializerException
+     * @throws JsonSerializerException
      */
-    protected function unserializeObject($value) {
+    protected function unserializeObject($value)
+    {
         $className = $value[static::CLASS_IDENTIFIER_KEY];
 
         $obj = false;
         if ($className == 'MongoDate') {
             $obj = new \MongoDate($value['sec'], $value['usec']);
         } elseif ($className == 'MongoId') {
-            $obj = new \MongoId($value['$id']);
+            $thisId = null;
+            if (isset($value['$id'])) {
+                $thisId = $value['$id'];
+            }
+            if (isset($value['objectID']['oid'])) {
+                $thisId = $value['objectID']['oid'];
+            }
+
+            if (is_null($thisId)) {
+                throw new \LogicException('Could not deserialize MongoID instance, could not find $id!');
+            }
+
+            $obj = new \MongoId($thisId);
         }
 
         if ($obj !== false) {
@@ -40,5 +54,33 @@ class JsonSerializer extends BaseSerializer
         }
 
         return parent::unserializeObject($value);
+    }
+
+    /**
+     * Extract the object data
+     *
+     * @param object          $value      obj
+     * @param ReflectionClass $ref        ref
+     * @param array           $properties props
+     *
+     * @return array
+     */
+    protected function extractObjectData($value, $ref, $properties)
+    {
+        $data = array();
+        foreach ($properties as $property) {
+            try {
+                if (class_exists('\MongoDB\BSON\ObjectId') && $value instanceof \MongoDB\BSON\ObjectId) {
+                    $data['oid'] = $value->__toString();
+                } else {
+                    $propRef = $ref->getProperty($property);
+                    $propRef->setAccessible(true);
+                    $data[$property] = $propRef->getValue($value);
+                }
+            } catch (\ReflectionException $e) {
+                $data[$property] = $value->$property;
+            }
+        }
+        return $data;
     }
 }
