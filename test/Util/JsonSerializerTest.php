@@ -3,7 +3,7 @@
  * test our jsonserializer extension
  */
 
-namespace Graviton\ImportExport\Tests\Command;
+namespace Graviton\ImportExportTest\Util;
 
 use Graviton\ImportExport\Util\JsonSerializer;
 

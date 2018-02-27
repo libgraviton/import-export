@@ -10,6 +10,6 @@ namespace Graviton\ImportExport\Exception;
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class JsonParseException extends \Exception
+class ParseException extends \Exception
 {
 }

@@ -23,9 +23,29 @@ use Webuni\FrontMatter\FrontMatter;
 use Symfony\Component\Filesystem\Filesystem;
 use Graviton\ImportExport\Util\JsonSerializer;
 
+// monolog
+$sentryClient = new Raven_Client(
+        null,
+        [
+            'app_path' => __DIR__.'/../',
+            'tags' => ['application' => 'import-export']
+        ]
+);
+
+$logger = new \Monolog\Logger('app');
+$logger->pushHandler(new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::INFO));
+$logger->pushHandler(new \Monolog\Handler\RavenHandler($sentryClient, \Monolog\Logger::WARNING));
+
+$errorHandler = new Raven_ErrorHandler($sentryClient);
+$errorHandler->registerExceptionHandler();
+$errorHandler->registerErrorHandler();
+$errorHandler->registerShutdownFunction();
+
 $application = new Application();
+$application->setCatchExceptions(false);
 $application->add(
     new ImportCommand(
+        $logger,
         new HttpClient(),
         new Finder(),
         new FrontMatter(),
@@ -38,6 +58,7 @@ $application->add(
 if (class_exists('\MongoClient')) {
     $application->add(
         new CoreImportCommand(
+            $logger,
             new FrontMatter(),
             new JsonSerializer(),
             new Finder()
