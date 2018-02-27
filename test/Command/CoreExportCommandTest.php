@@ -3,7 +3,7 @@
  * check core export command
  */
 
-namespace Graviton\ImportExport\Tests\Command;
+namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\CoreExportCommand;
 use Symfony\Component\Console\Application;

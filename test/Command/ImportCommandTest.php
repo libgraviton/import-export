@@ -3,9 +3,10 @@
  * check import command
  */
 
-namespace Graviton\ImportExport\Tests\Command;
+namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\ImportCommand;
+use Graviton\ImportExportTest\Util\TestUtils;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -51,7 +52,10 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ->method('request')
             ->will($this->returnValue($responseMock));
 
+        $logger = TestUtils::getTestingLogger();
+
         $sut = new ImportCommand(
+            $logger,
             $clientMock,
             new Finder(),
             new FrontMatter(),
@@ -61,9 +65,10 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
         );
 
         $cmdTester = $this->getTester($sut, $file);
+        $display = TestUtils::getFullStringFromLog($logger->getHandlers()[0]);
 
-        $this->assertContains('Loading data from ' . $file, $cmdTester->getDisplay());
-        $this->assertContains('Wrote <' . $host . $path . '>; rel="self"', $cmdTester->getDisplay());
+        $this->assertContains('Loading data from ' . $file, $display);
+        $this->assertContains('Wrote <' . $host . $path . '>; rel="self"', $display);
         $this->assertEquals(0, $cmdTester->getStatusCode());
     }
 
@@ -130,7 +135,10 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             ->method('request')
             ->willThrowException($exceptionMock);
 
+        $logger = TestUtils::getTestingLogger();
+
         $sut = new ImportCommand(
+            $logger,
             $clientMock,
             new Finder(),
             new FrontMatter(),
@@ -140,12 +148,13 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
         );
 
         $cmdTester = $this->getTester($sut, $file);
+        $display = TestUtils::getFullStringFromLog($logger->getHandlers()[0]);
 
-        $this->assertContains('Loading data from ' . $file, $cmdTester->getDisplay());
+        $this->assertContains('Loading data from ' . $file, $display);
         foreach ($errors as $error) {
             $this->assertContains(
                 $error,
-                $cmdTester->getDisplay()
+                $display.' - '.$cmdTester->getDisplay()
             );
         }
         $this->assertEquals(1, $cmdTester->getStatusCode());
@@ -206,7 +215,10 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
             )
             ->will($this->returnValue($responseMock));
 
+        $logger = TestUtils::getTestingLogger();
+
         $sut = new ImportCommand(
+            $logger,
             $clientMock,
             new Finder(),
             new FrontMatter(),
@@ -223,7 +235,10 @@ class ImportCommandTest extends \PHPUnit_Framework_TestCase
                 '--rewrite-host' => 'http://localhost'
             ]
         );
-        $this->assertContains('Wrote <http://example.com/core/module/test>; rel="self"', $cmdTester->getDisplay());
+
+        $display = TestUtils::getFullStringFromLog($logger->getHandlers()[0]);
+
+        $this->assertContains('Wrote <http://example.com/core/module/test>; rel="self"', $display);
         $this->assertEquals(0, $cmdTester->getStatusCode());
     }
 
