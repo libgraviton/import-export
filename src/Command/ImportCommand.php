@@ -13,6 +13,7 @@ use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Graviton\ImportExport\Service\HttpClient;
+use Monolog\Logger;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
@@ -33,6 +34,7 @@ use Webuni\FrontMatter\Document;
  */
 class ImportCommand extends ImportCommandAbstract
 {
+
     /**
      * @var HttpClient
      */
@@ -77,6 +79,7 @@ class ImportCommand extends ImportCommandAbstract
     private $customHeaders;
 
     /**
+     * @param Logger      $logger      logger
      * @param HttpClient  $client      Grv HttpClient guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
@@ -85,6 +88,7 @@ class ImportCommand extends ImportCommandAbstract
      * @param Dumper      $dumper      dumper for outputing responses
      */
     public function __construct(
+        Logger $logger,
         HttpClient $client,
         Finder $finder,
         FrontMatter $frontMatter,
@@ -93,6 +97,7 @@ class ImportCommand extends ImportCommandAbstract
         Dumper $dumper
     ) {
         parent::__construct(
+            $logger,
             $finder
         );
         $this->client = $client;
@@ -195,13 +200,16 @@ class ImportCommand extends ImportCommandAbstract
         // Error exit
         if (empty($this->errors)) {
             // No errors
-            $output->writeln("\n".'<info>No errors</info>');
+            $this->logger->info('No errors');
         } else {
             // Yes, there was errors
-            $output->writeln("\n".'<info>There was errors: '.count($this->errors).'</info>');
-            foreach ($this->errors as $file => $error) {
-                $output->writeln("<error>{$file}: {$error}</error>");
-            }
+            $this->logger->error(
+                'There were import errors',
+                [
+                    'errorCount' => count($this->errors),
+                    'errors' => $this->errors
+                ]
+            );
             $exitCode = 1;
         }
         return $exitCode;
@@ -231,7 +239,7 @@ class ImportCommand extends ImportCommandAbstract
         foreach ($finder as $file) {
             $doc = $this->frontMatter->parse($file->getContents());
 
-            $output->writeln("<info>Loading data from ${file}</info>");
+            $this->logger->info("Loading data from ${file}");
 
             if (!array_key_exists('target', $doc->getData())) {
                 throw new MissingTargetException('Missing target in \'' . $file . '\'');
@@ -298,15 +306,11 @@ class ImportCommand extends ImportCommandAbstract
         if ($noOverwrite) {
             $response = $this->client->request('GET', $targetUrl, array_merge($data, ['http_errors' => false]));
             if ($response->getStatusCode() == 200) {
-                $output->writeln(
-                    '<info>' . str_pad(
-                        sprintf(
-                            'Skipping <%s> as "no overwrite" is activated and it does exist.',
-                            $targetUrl
-                        ),
-                        140,
-                        ' '
-                    ) . '</info>'
+                $this->logger->info(
+                    sprintf(
+                        'Skipping <%s> as "no overwrite" is activated and it does exist.',
+                        $targetUrl
+                    )
                 );
                 return;
             }
@@ -317,18 +321,15 @@ class ImportCommand extends ImportCommandAbstract
                 unset($this->errors[$file]);
                 try {
                     $this->client->request('DELETE', $targetUrl, $data);
-                    $output->writeln('<info>File deleted: '.$targetUrl.'</info>');
+                    $this->logger->info("File deleted: ${targetUrl}");
                 } catch (\Exception $e) {
-                    $output->writeln(
-                        '<error>' . str_pad(
-                            sprintf(
-                                'Failed to delete <%s> with message \'%s\'',
-                                $targetUrl,
-                                $e->getMessage()
-                            ),
-                            140,
-                            ' '
-                        ) . '</error>'
+                    $this->logger->error(
+                        sprintf(
+                            'Failed to delete <%s> with message \'%s\'',
+                            $targetUrl,
+                            $e->getMessage()
+                        ),
+                        ['exception' => $e]
                     );
                 }
             }
@@ -339,22 +340,17 @@ class ImportCommand extends ImportCommandAbstract
                 $data
             );
 
-            $output->writeln(
-                '<comment>Wrote ' . $response->getHeader('Link')[0] . '</comment>'
-            );
+            $this->logger->info('Wrote ' . $response->getHeader('Link')[0]);
         } catch (\Exception $e) {
             $this->errors[$file] = $e->getMessage();
-            $output->writeln(
-                '<error>' . str_pad(
-                    sprintf(
-                        'Failed to write <%s> from \'%s\' with message \'%s\'',
-                        $e->getRequest()->getUri(),
-                        $file,
-                        $e->getMessage()
-                    ),
-                    140,
-                    ' '
-                ) . '</error>'
+            $this->logger->error(
+                sprintf(
+                    'Failed to write <%s> from \'%s\' with message \'%s\'',
+                    $e->getRequest()->getUri(),
+                    $file,
+                    $e->getMessage()
+                ),
+                ['exception' => $e]
             );
             if ($output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
                 $this->dumper->dump(
