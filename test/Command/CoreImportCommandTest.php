@@ -3,9 +3,10 @@
  * check core import command
  */
 
-namespace Graviton\ImportExport\Tests\Command;
+namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\CoreImportCommand;
+use Monolog\Logger;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
@@ -62,6 +63,7 @@ class CoreImportCommandTest extends \PHPUnit_Framework_TestCase
             ->willReturn($dbMock);
 
         $sut = new CoreImportCommand(
+            new Logger("test"),
             new FrontMatter(),
             new JsonSerializer(),
             new Finder()

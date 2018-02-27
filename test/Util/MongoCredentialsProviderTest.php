@@ -3,7 +3,7 @@
  * test mongocredential provider
  */
 
-namespace Graviton\ImportExport\Tests\Command;
+namespace Graviton\ImportExportTest\Util;
 
 use Graviton\ImportExport\Util\MongoCredentialsProvider;
 

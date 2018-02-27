@@ -1,6 +1,6 @@
 <?php
 /**
- * thrown when we get a json error
+ * thrown when we get a import error
  */
 
 namespace Graviton\ImportExport\Exception;
@@ -10,6 +10,6 @@ namespace Graviton\ImportExport\Exception;
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class JsonParseException extends \Exception
+class ImportException extends \Exception
 {
 }

@@ -11,6 +11,7 @@ namespace Graviton\ImportExport\Command;
 
 use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\JsonParseException;
+use Graviton\ImportExport\Exception\ParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Graviton\ImportExport\Service\HttpClient;
 use Monolog\Logger;
@@ -24,6 +25,7 @@ use Symfony\Component\VarDumper\Cloner\VarCloner;
 use Symfony\Component\VarDumper\Dumper\CliDumper as Dumper;
 use GuzzleHttp\Promise;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Yaml\Yaml;
 use Webuni\FrontMatter\FrontMatter;
 use Webuni\FrontMatter\Document;
 
@@ -355,7 +357,7 @@ class ImportCommand extends ImportCommandAbstract
             if ($output->getVerbosity() >= OutputInterface::VERBOSITY_VERBOSE) {
                 $this->dumper->dump(
                     $this->cloner->cloneVar(
-                        $this->parser->parse($e->getResponse()->getBody(), false, false, true)
+                        $this->parser->parse($e->getResponse()->getBody(), Yaml::PARSE_OBJECT_FOR_MAP)
                     ),
                     function ($line, $depth) use ($output) {
                         if ($depth > 0) {
@@ -377,14 +379,14 @@ class ImportCommand extends ImportCommandAbstract
      *
      * @return mixed
      * @throws UnknownFileTypeException
-     * @throws JsonParseException
+     * @throws ParseException
      */
     protected function parseContent($content, $file)
     {
         if (substr($file, -5) == '.json') {
             $data = json_decode($content);
             if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new JsonParseException(
+                throw new ParseException(
                     sprintf(
                         '%s in %s',
                         json_last_error_msg(),
@@ -393,7 +395,19 @@ class ImportCommand extends ImportCommandAbstract
                 );
             }
         } elseif (substr($file, -4) == '.yml') {
-            $data = $this->parser->parse($content);
+            try {
+                $data = $this->parser->parse($content);
+            } catch (\Exception $e) {
+                throw new ParseException(
+                    sprintf(
+                        'YAML parse error in file %s, message = %s',
+                        $file,
+                        $e->getMessage()
+                    ),
+                    0,
+                    $e
+                );
+            }
         } else {
             throw new UnknownFileTypeException($file);
         }

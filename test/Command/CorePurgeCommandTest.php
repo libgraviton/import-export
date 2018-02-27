@@ -3,7 +3,7 @@
  * check core purge command
  */
 
-namespace Graviton\ImportExport\Tests\Command;
+namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\CorePurgeCommand;
 use Symfony\Component\Console\Application;
