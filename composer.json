@@ -45,9 +45,9 @@
             "Graviton\\ImportExport\\": "src/"
         }
     },
-    "autload-dev": {
+    "autoload-dev": {
         "psr-4": {
-            "Graviton\\ImportExport\\Test\\": "test/"
+            "Graviton\\ImportExportTest\\": "test/"
         }
     },
     "bin": [
