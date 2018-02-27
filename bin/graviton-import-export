@@ -42,6 +42,7 @@ $errorHandler->registerErrorHandler();
 $errorHandler->registerShutdownFunction();
 
 $application = new Application();
+$application->setCatchExceptions(false);
 $application->add(
     new ImportCommand(
         $logger,
