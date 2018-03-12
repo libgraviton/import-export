@@ -139,13 +139,39 @@ class CoreImportCommand extends ImportCommandAbstract
         } else {
             try {
                 $collectionName = $doc->getData()['collection'];
-                $this->getDatabase($input)->selectCollection($collectionName)->save($origDoc);
-                $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
+
+                if ($this->isMultipleInsert($origDoc)) {
+                    $i = 1;
+                    foreach ($origDoc as $doc) {
+                        $this->getDatabase($input)->selectCollection($collectionName)->save($doc);
+                        $output->writeln("<info>Imported <${file}:${i}> to <${collectionName}></info>");
+                        $i++;
+                    }
+                } else {
+                    $this->getDatabase($input)->selectCollection($collectionName)->save($origDoc);
+                    $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
+                }
             } catch (\Exception $e) {
                 $errorMessage = "<error>Error in <${file}>: ".$e->getMessage()."</error>";
                 $output->writeln($errorMessage);
                 $this->errorStack[] = $errorMessage;
             }
         }
+    }
+
+    /**
+     * checks if we should insert multiple documents from one file
+     *
+     * @param array $docs the docs (one or many)
+     *
+     * @return bool true if yes, false otherwise
+     */
+    private function isMultipleInsert($docs)
+    {
+        $keys = array_keys($docs);
+        if (empty($keys)) {
+            return false;
+        }
+        return is_int($keys[0]);
     }
 }
