@@ -31,7 +31,11 @@ class JsonSerializer extends BaseSerializer
 
         $obj = false;
         if ($className == 'MongoDate') {
-            $obj = new \MongoDate($value['sec'], $value['usec']);
+            if (isset($value['usec'])) {
+                $obj = new \MongoDate($value['sec'], $value['usec']);
+            } else {
+                $obj = new \MongoDate($value['sec']);
+            }
         } elseif ($className == 'MongoId') {
             $thisId = null;
             if (isset($value['$id'])) {
