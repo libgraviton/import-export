@@ -7,6 +7,7 @@ namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\ImportCommand;
 use Graviton\ImportExportTest\Util\TestUtils;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,7 +22,7 @@ use Webuni\FrontMatter\FrontMatter;
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class ImportCommandTest extends \PHPUnit_Framework_TestCase
+class ImportCommandTest extends TestCase
 {
     /**
      * String Http Client Class.

@@ -7,6 +7,7 @@ namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\CoreImportCommand;
 use Monolog\Logger;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem;
@@ -19,7 +20,7 @@ use Graviton\ImportExport\Util\JsonSerializer;
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class CoreImportCommandTest extends \PHPUnit_Framework_TestCase
+class CoreImportCommandTest extends TestCase
 {
 
     /**

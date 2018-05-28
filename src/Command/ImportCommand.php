@@ -322,8 +322,15 @@ class ImportCommand extends ImportCommandAbstract
             if ($uploadFile) {
                 unset($this->errors[$file]);
                 try {
-                    $this->client->request('DELETE', $targetUrl, $data);
-                    $this->logger->info("File deleted: ${targetUrl}");
+                    // see if file exists..
+                    $checkRequestData = array_merge($data, ['http_errors' => false]);
+                    $checkRequestData['headers']['accept'] = 'application/json';
+                    $response = $this->client->request('GET', $targetUrl, $checkRequestData);
+
+                    if ($response->getStatusCode() <> 404) {
+                        $this->client->request('DELETE', $targetUrl, $data);
+                        $this->logger->info("File deleted: ${targetUrl}");
+                    }
                 } catch (\Exception $e) {
                     $this->logger->error(
                         sprintf(
