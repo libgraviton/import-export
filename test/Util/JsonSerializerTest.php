@@ -6,13 +6,14 @@
 namespace Graviton\ImportExportTest\Util;
 
 use Graviton\ImportExport\Util\JsonSerializer;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class JsonSerializerTest extends \PHPUnit_Framework_TestCase
+class JsonSerializerTest extends TestCase
 {
 
     /**
