@@ -6,6 +6,7 @@
 namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\CorePurgeCommand;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
@@ -14,7 +15,7 @@ use Symfony\Component\Console\Tester\CommandTester;
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class CorePurgeCommandTest extends \PHPUnit_Framework_TestCase
+class CorePurgeCommandTest extends TestCase
 {
 
     /**

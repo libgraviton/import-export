@@ -6,13 +6,14 @@
 namespace Graviton\ImportExportTest\Util;
 
 use Graviton\ImportExport\Util\MongoCredentialsProvider;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
  * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
  * @link     http://swisscom.ch
  */
-class MongoCredentialsProviderTest extends \PHPUnit_Framework_TestCase
+class MongoCredentialsProviderTest extends TestCase
 {
     /**
      * check fromInput method
