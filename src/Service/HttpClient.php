@@ -5,15 +5,13 @@
 namespace Graviton\ImportExport\Service;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Psr7;
-use GuzzleHttp\Promise;
 
 /**
  * Class HttpClient
  * Extends Guzzle client
  *
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
- * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://swisscom.ch
  */
 class HttpClient extends Client
