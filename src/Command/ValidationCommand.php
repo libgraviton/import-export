@@ -115,9 +115,11 @@ class ValidationCommand extends Command
             foreach ($this->validationErrors as $file => $error) {
                 $output->writeln('<comment>'.strstr($file, '/initialdata/').': '.$error.'</comment>');
             }
+            return -1;
         } else {
             $output->writeln("\n".'<info>You are awesome! No Errors detected.</info>');
         }
+        return 0;
     }
 
     /**
