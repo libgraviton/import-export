@@ -13,20 +13,21 @@
         "platform": {"ext-mongo": "1.6.14"}
     },
     "require": {
-        "php": ">=7.1.0",
-        "symfony/console": "~4.0.0",
-        "symfony/finder": "~4.0.0",
-        "symfony/filesystem": "~4.0.0",
-        "symfony/yaml": "~4.0.0",
-        "symfony/var-dumper": "~4.0.0",
+        "php": ">=7.2.0",
+        "ext-iconv": "*",
+        "symfony/console": "^4.2.0",
+        "symfony/finder": "^4.2.0",
+        "symfony/filesystem": "^4.2.0",
+        "symfony/yaml": "^4.2.0",
+        "symfony/var-dumper": "^4.2.0",
         "guzzlehttp/guzzle": "^6.0",
         "webuni/front-matter": "^1.0",
         "zumba/json-serializer": "^2.0",
         "flow/jsonpath": "^0.4.0",
-        "ext-iconv": "*",
         "alcaeus/mongo-php-adapter": "^1.1",
         "monolog/monolog": "^1.23",
-        "sentry/sentry": "^1.8"
+        "php-http/guzzle6-adapter": "^2",
+        "sentry/sentry": "^2"
     },
     "require-dev": {
         "phpunit/phpunit": "~7.1",
