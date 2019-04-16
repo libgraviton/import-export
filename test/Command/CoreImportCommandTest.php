@@ -47,7 +47,7 @@ class CoreImportCommandTest extends TestCase
      *
      * @return void
      */
-    public function setUp()
+    public function setUp() : void
     {
         $clientMock = $this->getMockBuilder('\MongoClient')->disableOriginalConstructor()->getMock();
 
@@ -126,7 +126,7 @@ class CoreImportCommandTest extends TestCase
         $this->assertTrue(($this->saves[0]['date'] instanceof \MongoDate));
 
         // fail in output?
-        $this->assertContains(
+        $this->assertStringContainsString(
             'Error in <' . $this->sourceDir . '/Dudess/Invalid.json>: Invalid JSON to unserialize.',
             $this->cmdTester->getDisplay()
         );

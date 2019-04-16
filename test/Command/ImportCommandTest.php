@@ -64,8 +64,8 @@ class ImportCommandTest extends TestCase
         $cmdTester = $this->getTester($sut, $file);
         $display = $cmdTester->getDisplay();
 
-        $this->assertContains('Loading data from ' . $file, $display);
-        $this->assertContains('Wrote <' . $host . $path . '>; rel="self"', $display);
+        $this->assertStringContainsString('Loading data from ' . $file, $display);
+        $this->assertStringContainsString('Wrote <' . $host . $path . '>; rel="self"', $display);
         $this->assertEquals(0, $cmdTester->getStatusCode());
     }
 
@@ -144,9 +144,9 @@ class ImportCommandTest extends TestCase
         $cmdTester = $this->getTester($sut, $file);
         $display = $cmdTester->getDisplay();
 
-        $this->assertContains('Loading data from ' . $file, $display);
+        $this->assertStringContainsString('Loading data from ' . $file, $display);
         foreach ($errors as $error) {
-            $this->assertContains(
+            $this->assertStringContainsString(
                 $error,
                 $display
             );
@@ -228,7 +228,7 @@ class ImportCommandTest extends TestCase
         );
 
         $display = $cmdTester->getDisplay();
-        $this->assertContains('Wrote <http://example.com/core/module/test>; rel="self"', $display);
+        $this->assertStringContainsString('Wrote <http://example.com/core/module/test>; rel="self"', $display);
         $this->assertEquals(0, $cmdTester->getStatusCode());
     }
 

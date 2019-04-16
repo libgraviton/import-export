@@ -41,7 +41,7 @@ class CoreExportCommandTest extends TestCase
      *
      * @return void
      */
-    public function setUp()
+    public function setUp() : void
     {
         $this->fs = new Filesystem();
 
@@ -122,10 +122,10 @@ class CoreExportCommandTest extends TestCase
         $file = $this->destinationDir.'Dude'.DIRECTORY_SEPARATOR.'Record1.json';
         $this->assertFileExists($file);
         $contents = file_get_contents($file);
-        $this->assertContains('collection: Dude', $contents);
-        $this->assertContains('"_id": "Record1",', $contents);
-        $this->assertContains('"name": "Fred",', $contents);
-        $this->assertContains('"@type": "MongoDate"', $contents);
+        $this->assertStringContainsString('collection: Dude', $contents);
+        $this->assertStringContainsString('"_id": "Record1",', $contents);
+        $this->assertStringContainsString('"name": "Fred",', $contents);
+        $this->assertStringContainsString('"@type": "MongoDate"', $contents);
 
         $this->assertFileExists($this->destinationDir.'Dude'.DIRECTORY_SEPARATOR.'Record2.json');
 
@@ -142,7 +142,7 @@ class CoreExportCommandTest extends TestCase
      *
      * @return void
      */
-    public function tearDown()
+    public function tearDown() : void
     {
         $this->fs->remove($this->destinationDir);
     }

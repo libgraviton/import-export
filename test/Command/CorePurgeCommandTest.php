@@ -26,11 +26,12 @@ class CorePurgeCommandTest extends TestCase
     /**
      * test purge command calls
      *
-     * @expectedException \LogicException
      * @return void
      */
     public function testCalls()
     {
+        $this->expectException('\LogicException');
+
         $clientMock = $this->getMockBuilder('\MongoClient')->disableOriginalConstructor()->getMock();
 
         $collection = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
