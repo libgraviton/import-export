@@ -80,7 +80,6 @@ class ImportCommand extends ImportCommandAbstract
     private $customHeaders;
 
     /**
-     * @param Logger      $logger      logger
      * @param HttpClient  $client      Grv HttpClient guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
@@ -89,7 +88,6 @@ class ImportCommand extends ImportCommandAbstract
      * @param Dumper      $dumper      dumper for outputing responses
      */
     public function __construct(
-        Logger $logger,
         HttpClient $client,
         Finder $finder,
         FrontMatter $frontMatter,
@@ -98,7 +96,6 @@ class ImportCommand extends ImportCommandAbstract
         Dumper $dumper
     ) {
         parent::__construct(
-            $logger,
             $finder
         );
         $this->client = $client;
@@ -327,7 +324,11 @@ class ImportCommand extends ImportCommandAbstract
                 $response = $this->client->request('GET', $targetUrl, $checkRequestData);
 
                 if ($response->getStatusCode() <> 404) {
-                    $response = $this->client->request('DELETE', $targetUrl, array_merge($data, ['http_errors' => false]));
+                    $response = $this->client->request(
+                        'DELETE',
+                        $targetUrl,
+                        array_merge($data, ['http_errors' => false])
+                    );
                     $this->logger->info("File deleted: ${targetUrl} (response code " . $response->getStatusCode().")");
                 }
             }

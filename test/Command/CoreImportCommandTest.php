@@ -6,7 +6,6 @@
 namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\CoreImportCommand;
-use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -64,7 +63,6 @@ class CoreImportCommandTest extends TestCase
             ->willReturn($dbMock);
 
         $sut = new CoreImportCommand(
-            new Logger("test"),
             new FrontMatter(),
             new JsonSerializer(),
             new Finder()

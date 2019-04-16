@@ -6,7 +6,7 @@
 
 namespace Graviton\ImportExport\Command;
 
-use Graviton\ImportExport\Exception\MissingTargetException;
+use Graviton\ImportExport\Util\LoggerFactory;
 use Monolog\Logger;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -32,14 +32,11 @@ abstract class ImportCommandAbstract extends Command
     protected $logger;
 
     /**
-     * @param Logger $logger logger
      * @param Finder $finder finder instance
      */
     public function __construct(
-        Logger $logger,
         Finder $finder
     ) {
-        $this->logger = $logger;
         $this->finder = $finder;
         parent::__construct();
     }
@@ -54,11 +51,12 @@ abstract class ImportCommandAbstract extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->logger = LoggerFactory::getInstance($output);
         $exitCode = 1;
         try {
             $exitCode = $this->doImport($this->getFinder($input), $input, $output);
-        } catch (MissingTargetException $e) {
-            $output->writeln('<error>' . $e->getMessage() . '</error>');
+        } catch (\Exception $e) {
+            $this->logger->emergency($e->getMessage(), ['exp' => $e]);
         }
         return $exitCode;
     }

@@ -39,18 +39,16 @@ class CoreImportCommand extends ImportCommandAbstract
     private $errorStack = [];
 
     /**
-     * @param Logger         $logger      logger
      * @param FrontMatter    $frontMatter frontmatter parser
      * @param JsonSerializer $serializer  serializer
      * @param Finder         $finder      finder
      */
     public function __construct(
-        Logger $logger,
         FrontMatter $frontMatter,
         JsonSerializer $serializer,
         Finder $finder
     ) {
-        parent::__construct($logger, $finder);
+        parent::__construct($finder);
         $this->frontMatter = $frontMatter;
         $this->serializer = $serializer;
     }
