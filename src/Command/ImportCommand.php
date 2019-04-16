@@ -321,25 +321,15 @@ class ImportCommand extends ImportCommandAbstract
         try {
             if ($uploadFile) {
                 unset($this->errors[$file]);
-                try {
-                    // see if file exists..
-                    $checkRequestData = array_merge($data, ['http_errors' => false]);
-                    $checkRequestData['headers']['accept'] = 'application/json';
-                    $response = $this->client->request('GET', $targetUrl, $checkRequestData);
 
-                    if ($response->getStatusCode() <> 404) {
-                        $this->client->request('DELETE', $targetUrl, $data);
-                        $this->logger->info("File deleted: ${targetUrl}");
-                    }
-                } catch (\Exception $e) {
-                    $this->logger->error(
-                        sprintf(
-                            'Failed to delete <%s> with message \'%s\'',
-                            $targetUrl,
-                            $e->getMessage()
-                        ),
-                        ['exception' => $e]
-                    );
+                // see if file exists..
+                $checkRequestData = array_merge($data, ['http_errors' => false]);
+                $checkRequestData['headers']['accept'] = 'application/json';
+                $response = $this->client->request('GET', $targetUrl, $checkRequestData);
+
+                if ($response->getStatusCode() <> 404) {
+                    $response = $this->client->request('DELETE', $targetUrl, array_merge($data, ['http_errors' => false]));
+                    $this->logger->info("File deleted: ${targetUrl} (response code " . $response->getStatusCode().")");
                 }
             }
 
