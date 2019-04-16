@@ -113,7 +113,7 @@ class ValidationCommand extends Command
         if (!empty($this->validationErrors)) {
             $output->writeln("\n".'<error>With: '.count($this->validationErrors).' Errors</error>');
             foreach ($this->validationErrors as $file => $error) {
-                $output->writeln('<comment>'.strstr($file, '/initialdata/').': '.$error.'</comment>');
+                $output->writeln('<comment>'.$file.': '.$error.'</comment>');
             }
             return -1;
         } else {
