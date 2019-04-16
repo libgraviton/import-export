@@ -32,6 +32,7 @@ class LoggerFactory
      */
     public static function getInstance(OutputInterface $output = null)
     {
+        $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
         $sentryClient = new Raven_Client(
             null,
             [
