@@ -26,7 +26,8 @@
         "flow/jsonpath": "^0.4.0",
         "alcaeus/mongo-php-adapter": "^1.1",
         "monolog/monolog": "^1.23",
-        "sentry/sentry": "^1"
+        "sentry/sentry": "^1",
+        "symfony/monolog-bridge": "^4.2"
     },
     "require-dev": {
         "phpunit/phpunit": "~7.1",
