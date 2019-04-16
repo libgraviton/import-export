@@ -6,7 +6,6 @@
 namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\ImportCommand;
-use Graviton\ImportExportTest\Util\TestUtils;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -53,10 +52,7 @@ class ImportCommandTest extends TestCase
             ->method('request')
             ->will($this->returnValue($responseMock));
 
-        $logger = TestUtils::getTestingLogger();
-
         $sut = new ImportCommand(
-            $logger,
             $clientMock,
             new Finder(),
             new FrontMatter(),
@@ -66,7 +62,7 @@ class ImportCommandTest extends TestCase
         );
 
         $cmdTester = $this->getTester($sut, $file);
-        $display = TestUtils::getFullStringFromLog($logger->getHandlers()[0]);
+        $display = $cmdTester->getDisplay();
 
         $this->assertContains('Loading data from ' . $file, $display);
         $this->assertContains('Wrote <' . $host . $path . '>; rel="self"', $display);
@@ -136,10 +132,7 @@ class ImportCommandTest extends TestCase
             ->method('request')
             ->willThrowException($exceptionMock);
 
-        $logger = TestUtils::getTestingLogger();
-
         $sut = new ImportCommand(
-            $logger,
             $clientMock,
             new Finder(),
             new FrontMatter(),
@@ -149,13 +142,13 @@ class ImportCommandTest extends TestCase
         );
 
         $cmdTester = $this->getTester($sut, $file);
-        $display = TestUtils::getFullStringFromLog($logger->getHandlers()[0]);
+        $display = $cmdTester->getDisplay();
 
         $this->assertContains('Loading data from ' . $file, $display);
         foreach ($errors as $error) {
             $this->assertContains(
                 $error,
-                $display.' - '.$cmdTester->getDisplay()
+                $display
             );
         }
         $this->assertEquals(1, $cmdTester->getStatusCode());
@@ -216,10 +209,7 @@ class ImportCommandTest extends TestCase
             )
             ->will($this->returnValue($responseMock));
 
-        $logger = TestUtils::getTestingLogger();
-
         $sut = new ImportCommand(
-            $logger,
             $clientMock,
             new Finder(),
             new FrontMatter(),
@@ -237,8 +227,7 @@ class ImportCommandTest extends TestCase
             ]
         );
 
-        $display = TestUtils::getFullStringFromLog($logger->getHandlers()[0]);
-
+        $display = $cmdTester->getDisplay();
         $this->assertContains('Wrote <http://example.com/core/module/test>; rel="self"', $display);
         $this->assertEquals(0, $cmdTester->getStatusCode());
     }
@@ -270,7 +259,7 @@ class ImportCommandTest extends TestCase
             ),
             [
                 'decorated' => true,
-                'verbosity' => OutputInterface::VERBOSITY_VERBOSE,
+                'verbosity' => OutputInterface::VERBOSITY_DEBUG
             ]
         );
         return $cmdTester;
