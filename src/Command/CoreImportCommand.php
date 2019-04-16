@@ -101,10 +101,7 @@ class CoreImportCommand extends ImportCommandAbstract
         }
 
         if (!empty($this->errorStack)) {
-            $output->writeln('<error>Errors orcurred during load!</error>');
-            foreach ($this->errorStack as $errorMessage) {
-                $output->writeln($errorMessage);
-            }
+            $this->logger->error('Errors orcurred during load!', ['stack' => $this->errorStack]);
             $exitCode = 1;
         }
         return $exitCode;
@@ -126,15 +123,15 @@ class CoreImportCommand extends ImportCommandAbstract
         try {
             $origDoc = $this->serializer->unserialize($doc->getContent());
         } catch (\Exception $e) {
-            $errorMessage = "<error>Error in <${file}>: ".$e->getMessage()."</error>";
-            $output->writeln($errorMessage);
+            $errorMessage = "Error in <${file}>: ".$e->getMessage();
+            $this->logger->error($errorMessage);
             $this->errorStack[] = $errorMessage;
             return;
         }
 
         if (is_null($origDoc)) {
-            $errorMessage = "<error>Could not deserialize file <${file}></error>";
-            $output->writeln($errorMessage);
+            $errorMessage = "Could not deserialize file <${file}>";
+            $this->logger->error($errorMessage);
             array_push($this->errorStack, $errorMessage);
         } else {
             try {
@@ -144,16 +141,24 @@ class CoreImportCommand extends ImportCommandAbstract
                     $i = 1;
                     foreach ($origDoc as $doc) {
                         $this->getDatabase($input)->selectCollection($collectionName)->save($doc);
-                        $output->writeln("<info>Imported <${file}:${i}> to <${collectionName}></info>");
+                        $thisId = '';
+                        if (isset($doc['_id'])) {
+                            $thisId = $doc['_id'];
+                        }
+                        $this->logger->info("Imported <${file}:${i}> to <${collectionName}:${thisId}>");
                         $i++;
                     }
                 } else {
                     $this->getDatabase($input)->selectCollection($collectionName)->save($origDoc);
-                    $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
+                    $thisId = '';
+                    if (isset($origDoc['_id'])) {
+                        $thisId = $origDoc['_id'];
+                    }
+                    $this->logger->info("Imported <${file}> to <${collectionName}:${thisId}>");
                 }
             } catch (\Exception $e) {
-                $errorMessage = "<error>Error in <${file}>: ".$e->getMessage()."</error>";
-                $output->writeln($errorMessage);
+                $errorMessage = "Error in <${file}>: ".$e->getMessage();
+                $this->logger->error($errorMessage);
                 $this->errorStack[] = $errorMessage;
             }
         }
