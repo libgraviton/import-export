@@ -16,7 +16,7 @@ use Graviton\ImportExport\Util\JsonSerializer;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
- * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://swisscom.ch
  */
 class CoreImportCommand extends ImportCommandAbstract
@@ -39,18 +39,16 @@ class CoreImportCommand extends ImportCommandAbstract
     private $errorStack = [];
 
     /**
-     * @param Logger         $logger      logger
      * @param FrontMatter    $frontMatter frontmatter parser
      * @param JsonSerializer $serializer  serializer
      * @param Finder         $finder      finder
      */
     public function __construct(
-        Logger $logger,
         FrontMatter $frontMatter,
         JsonSerializer $serializer,
         Finder $finder
     ) {
-        parent::__construct($logger, $finder);
+        parent::__construct($finder);
         $this->frontMatter = $frontMatter;
         $this->serializer = $serializer;
     }
@@ -101,10 +99,7 @@ class CoreImportCommand extends ImportCommandAbstract
         }
 
         if (!empty($this->errorStack)) {
-            $output->writeln('<error>Errors orcurred during load!</error>');
-            foreach ($this->errorStack as $errorMessage) {
-                $output->writeln($errorMessage);
-            }
+            $this->logger->error('Errors orcurred during load!', ['stack' => $this->errorStack]);
             $exitCode = 1;
         }
         return $exitCode;
@@ -126,15 +121,15 @@ class CoreImportCommand extends ImportCommandAbstract
         try {
             $origDoc = $this->serializer->unserialize($doc->getContent());
         } catch (\Exception $e) {
-            $errorMessage = "<error>Error in <${file}>: ".$e->getMessage()."</error>";
-            $output->writeln($errorMessage);
+            $errorMessage = "Error in <${file}>: ".$e->getMessage();
+            $this->logger->error($errorMessage);
             $this->errorStack[] = $errorMessage;
             return;
         }
 
         if (is_null($origDoc)) {
-            $errorMessage = "<error>Could not deserialize file <${file}></error>";
-            $output->writeln($errorMessage);
+            $errorMessage = "Could not deserialize file <${file}>";
+            $this->logger->error($errorMessage);
             array_push($this->errorStack, $errorMessage);
         } else {
             try {
@@ -144,16 +139,24 @@ class CoreImportCommand extends ImportCommandAbstract
                     $i = 1;
                     foreach ($origDoc as $doc) {
                         $this->getDatabase($input)->selectCollection($collectionName)->save($doc);
-                        $output->writeln("<info>Imported <${file}:${i}> to <${collectionName}></info>");
+                        $thisId = '';
+                        if (isset($doc['_id'])) {
+                            $thisId = $doc['_id'];
+                        }
+                        $this->logger->info("Imported <${file}:${i}> to <${collectionName}:${thisId}>");
                         $i++;
                     }
                 } else {
                     $this->getDatabase($input)->selectCollection($collectionName)->save($origDoc);
-                    $output->writeln("<info>Imported <${file}> to <${collectionName}></info>");
+                    $thisId = '';
+                    if (isset($origDoc['_id'])) {
+                        $thisId = $origDoc['_id'];
+                    }
+                    $this->logger->info("Imported <${file}> to <${collectionName}:${thisId}>");
                 }
             } catch (\Exception $e) {
-                $errorMessage = "<error>Error in <${file}>: ".$e->getMessage()."</error>";
-                $output->writeln($errorMessage);
+                $errorMessage = "Error in <${file}>: ".$e->getMessage();
+                $this->logger->error($errorMessage);
                 $this->errorStack[] = $errorMessage;
             }
         }

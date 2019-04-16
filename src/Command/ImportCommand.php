@@ -10,7 +10,6 @@
 namespace Graviton\ImportExport\Command;
 
 use Graviton\ImportExport\Exception\MissingTargetException;
-use Graviton\ImportExport\Exception\JsonParseException;
 use Graviton\ImportExport\Exception\ParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Graviton\ImportExport\Service\HttpClient;
@@ -31,7 +30,7 @@ use Webuni\FrontMatter\Document;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
- * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://swisscom.ch
  */
 class ImportCommand extends ImportCommandAbstract
@@ -81,7 +80,6 @@ class ImportCommand extends ImportCommandAbstract
     private $customHeaders;
 
     /**
-     * @param Logger      $logger      logger
      * @param HttpClient  $client      Grv HttpClient guzzle http client
      * @param Finder      $finder      symfony/finder instance
      * @param FrontMatter $frontMatter frontmatter parser
@@ -90,7 +88,6 @@ class ImportCommand extends ImportCommandAbstract
      * @param Dumper      $dumper      dumper for outputing responses
      */
     public function __construct(
-        Logger $logger,
         HttpClient $client,
         Finder $finder,
         FrontMatter $frontMatter,
@@ -99,7 +96,6 @@ class ImportCommand extends ImportCommandAbstract
         Dumper $dumper
     ) {
         parent::__construct(
-            $logger,
             $finder
         );
         $this->client = $client;
@@ -321,25 +317,19 @@ class ImportCommand extends ImportCommandAbstract
         try {
             if ($uploadFile) {
                 unset($this->errors[$file]);
-                try {
-                    // see if file exists..
-                    $checkRequestData = array_merge($data, ['http_errors' => false]);
-                    $checkRequestData['headers']['accept'] = 'application/json';
-                    $response = $this->client->request('GET', $targetUrl, $checkRequestData);
 
-                    if ($response->getStatusCode() <> 404) {
-                        $this->client->request('DELETE', $targetUrl, $data);
-                        $this->logger->info("File deleted: ${targetUrl}");
-                    }
-                } catch (\Exception $e) {
-                    $this->logger->error(
-                        sprintf(
-                            'Failed to delete <%s> with message \'%s\'',
-                            $targetUrl,
-                            $e->getMessage()
-                        ),
-                        ['exception' => $e]
+                // see if file exists..
+                $checkRequestData = array_merge($data, ['http_errors' => false]);
+                $checkRequestData['headers']['accept'] = 'application/json';
+                $response = $this->client->request('GET', $targetUrl, $checkRequestData);
+
+                if ($response->getStatusCode() <> 404) {
+                    $response = $this->client->request(
+                        'DELETE',
+                        $targetUrl,
+                        array_merge($data, ['http_errors' => false])
                     );
+                    $this->logger->info("File deleted: ${targetUrl} (response code " . $response->getStatusCode().")");
                 }
             }
 

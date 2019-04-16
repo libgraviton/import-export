@@ -6,7 +6,6 @@
 namespace Graviton\ImportExportTest\Command;
 
 use Graviton\ImportExport\Command\CoreImportCommand;
-use Monolog\Logger;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -17,7 +16,7 @@ use Graviton\ImportExport\Util\JsonSerializer;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
- * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://swisscom.ch
  */
 class CoreImportCommandTest extends TestCase
@@ -48,7 +47,7 @@ class CoreImportCommandTest extends TestCase
      *
      * @return void
      */
-    public function setUp()
+    public function setUp() : void
     {
         $clientMock = $this->getMockBuilder('\MongoClient')->disableOriginalConstructor()->getMock();
 
@@ -64,7 +63,6 @@ class CoreImportCommandTest extends TestCase
             ->willReturn($dbMock);
 
         $sut = new CoreImportCommand(
-            new Logger("test"),
             new FrontMatter(),
             new JsonSerializer(),
             new Finder()
@@ -128,7 +126,7 @@ class CoreImportCommandTest extends TestCase
         $this->assertTrue(($this->saves[0]['date'] instanceof \MongoDate));
 
         // fail in output?
-        $this->assertContains(
+        $this->assertStringContainsString(
             'Error in <' . $this->sourceDir . '/Dudess/Invalid.json>: Invalid JSON to unserialize.',
             $this->cmdTester->getDisplay()
         );

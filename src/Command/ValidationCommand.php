@@ -6,12 +6,10 @@
 
 namespace Graviton\ImportExport\Command;
 
-use Graviton\ImportExport\Exception\MissingTargetException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
@@ -22,7 +20,7 @@ use Symfony\Component\Yaml\Parser as YmlParser;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
- * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://swisscom.ch
  */
 class ValidationCommand extends Command

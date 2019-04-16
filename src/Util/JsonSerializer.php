@@ -13,7 +13,7 @@ use Zumba\JsonSerializer\JsonSerializer as BaseSerializer;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
- * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://swisscom.ch
  */
 class JsonSerializer extends BaseSerializer

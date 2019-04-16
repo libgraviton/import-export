@@ -12,7 +12,7 @@ use Symfony\Component\Console\Tester\CommandTester;
 
 /**
  * @author   List of contributors <https://github.com/libgraviton/import-export/graphs/contributors>
- * @license  http://opensource.org/licenses/gpl-license.php GNU Public License
+ * @license  https://opensource.org/licenses/MIT MIT License
  * @link     http://swisscom.ch
  */
 class CorePurgeCommandTest extends TestCase
@@ -26,11 +26,12 @@ class CorePurgeCommandTest extends TestCase
     /**
      * test purge command calls
      *
-     * @expectedException \LogicException
      * @return void
      */
     public function testCalls()
     {
+        $this->expectException('\LogicException');
+
         $clientMock = $this->getMockBuilder('\MongoClient')->disableOriginalConstructor()->getMock();
 
         $collection = $this->getMockBuilder('\MongoCollection')->disableOriginalConstructor()->getMock();
