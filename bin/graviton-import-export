@@ -32,7 +32,7 @@ $sentryClient = new Raven_Client(
         ]
 );
 
-$monologFormatter = new \Monolog\Formatter\LineFormatter(null, 'Y-m-d\TH:i:sO');
+$monologFormatter = new \Monolog\Formatter\LineFormatter(null, 'Y-m-d H:i:sO');
 $streamHandler = new \Monolog\Handler\StreamHandler('php://stdout', \Monolog\Logger::INFO);
 $streamHandler->setFormatter($monologFormatter);
 
