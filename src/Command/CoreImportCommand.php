@@ -5,7 +5,6 @@
 
 namespace Graviton\ImportExport\Command;
 
-use Monolog\Logger;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;

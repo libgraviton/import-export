@@ -10,8 +10,7 @@ before_script:
   - composer install --dev --no-interaction
   - wget https://scrutinizer-ci.com/ocular.phar
 php:
-  - 7.2
-  - 7.3
+  - 7.4
 script:
   - ./vendor/bin/phpunit --coverage-text --coverage-clover=coverage.clover
   - php ocular.phar code-coverage:upload --format=php-clover coverage.clover

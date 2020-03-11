@@ -13,7 +13,6 @@ use Graviton\ImportExport\Exception\MissingTargetException;
 use Graviton\ImportExport\Exception\ParseException;
 use Graviton\ImportExport\Exception\UnknownFileTypeException;
 use Graviton\ImportExport\Service\HttpClient;
-use Monolog\Logger;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputInterface;
