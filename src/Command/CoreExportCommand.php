@@ -139,6 +139,8 @@ class CoreExportCommand extends Command
 
             $this->dumpCollection($collection, $collectionDestinationDir);
         }
+
+        return 0;
     }
 
     /**

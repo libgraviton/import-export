@@ -78,6 +78,8 @@ class CorePurgeCommand extends Command
                 $this->purgeResourcesByOrigin($output, $recordOrigin, $collection);
             }
         }
+
+        return 0;
     }
 
     /**
