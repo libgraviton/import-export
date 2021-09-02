@@ -69,6 +69,12 @@ class CoreImportCommand extends ImportCommandAbstract
                 'MongoDB connection URL.'
             )
             ->addOption(
+                'database',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'MongoDB database name.'
+            )
+            ->addOption(
                 'input-file',
                 'i',
                 InputOption::VALUE_REQUIRED,
@@ -115,6 +121,8 @@ class CoreImportCommand extends ImportCommandAbstract
      */
     private function importResource(\SplFileInfo $file, InputInterface $input, OutputInterface $output)
     {
+        $mongoDbName = $input->getOption('database');
+
         $doc = $this->frontMatter->parse($file->getContents());
 
         try {
@@ -137,7 +145,7 @@ class CoreImportCommand extends ImportCommandAbstract
                 if ($this->isMultipleInsert($origDoc)) {
                     $i = 1;
                     foreach ($origDoc as $doc) {
-                        $this->getDatabase($input)->selectCollection($collectionName)->save($doc);
+                        $this->getDatabase($input, $mongoDbName)->selectCollection($collectionName)->save($doc);
                         $thisId = '';
                         if (isset($doc['_id'])) {
                             $thisId = $doc['_id'];
@@ -146,7 +154,7 @@ class CoreImportCommand extends ImportCommandAbstract
                         $i++;
                     }
                 } else {
-                    $this->getDatabase($input)->selectCollection($collectionName)->save($origDoc);
+                    $this->getDatabase($input, $mongoDbName)->selectCollection($collectionName)->save($origDoc);
                     $thisId = '';
                     if (isset($origDoc['_id'])) {
                         $thisId = $origDoc['_id'];

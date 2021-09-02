@@ -63,8 +63,11 @@ trait CoreClientTrait
      *
      * @return \MongoDB
      */
-    public function getDatabase(InputInterface $input)
+    public function getDatabase(InputInterface $input, $dbName = null)
     {
-        return $this->getClient($input)->selectDB($this->mongoCredentials['db']);
+        if (is_null($dbName)) {
+            $dbName = $this->mongoCredentials['db'];
+        }
+        return $this->getClient($input)->selectDB($dbName);
     }
 }
